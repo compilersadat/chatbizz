@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Merchant extends Model
+class Merchant extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
-    protected $table = 'tbl_user'; // Specify the actual table name
+    protected $table = 'merchants'; // Specify the actual table name
 
    
 
@@ -20,33 +21,28 @@ class Merchant extends Model
      */
     protected $fillable = [
         'name',
-        'email',
-        'password',
         'mobile',
-        'rdate',
+        'address',
         'status',
-        'ccode',
-        'code',
-        'wallet',
-        'email_verified_at',
+        'thumbnail',
+        'catagory_id',
+        'lat',
+        'lang',
+        'discount_price'
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    public function merchantcategory()
+    {
+        return $this->belongsTo(MerchantCatagory::class, 'catagory_id');
+    } 
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-    ];
+    public function merchantProducts()
+{
+    return $this->hasMany(MerchantProduct::class, 'merchant_id');
+}
+public function products()
+{
+    return $this->belongsToMany(Product::class, 'merchant_products');
+}
+
 }

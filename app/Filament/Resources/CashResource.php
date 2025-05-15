@@ -17,6 +17,11 @@ class CashResource extends Resource
 {
     protected static ?string $model = Cash::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    } 
+    
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

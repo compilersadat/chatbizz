@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
-class Rider extends Model
+class Rider extends Authenticatable
 {
-    use HasFactory;
+    use HasApiTokens, HasFactory;
 
 
     protected $table = 'tbl_rider';
@@ -29,7 +30,6 @@ class Rider extends Model
         'paypal_id',
         'upi_id',
         'email',
-        'password',
         'rstatus',
         'mobile',
         'accept',
@@ -37,7 +37,11 @@ class Rider extends Model
         'complete',
         'dzone',
         'vehiid',
+        'adhar_id',
+        'password'
     ];
+
+    protected $hidden = ['password'];
 
     // Relationship with Zone
     public function zone()
@@ -45,9 +49,9 @@ class Rider extends Model
         return $this->belongsTo(Zone::class, 'dzone');
     }
 
-    // Relationship with Vehicle
-    public function vehicle()
-    {
-        return $this->belongsTo(Vehicle::class, 'vehiid');
-    }
+    // // Relationship with Vehicle
+    // public function vehicle()
+    // {
+    //     return $this->belongsTo(Vehicle::class, 'vehiid');
+    // }
 }

@@ -82,10 +82,7 @@ class ZoneResource extends Resource
         //     'coordinates' => DB::raw("ST_GeomFromText('POLYGON((12.455363273620605 41.90746728266806, 12.450309991836548 41.906636872349075, 12.445632219314575 41.90197359839437, 12.447413206100464 41.90027269624499, 12.457906007766724 41.90000118654431, 12.458517551422117 41.90281205461268, 12.457584142684937 41.903107507989986, 12.457734346389769 41.905918239316286, 12.45572805404663 41.90637337450963, 12.455363273620605 41.90746728266806))')"),
         //     'alias' => 'Vatican Area',
         // ]);
-        // dd("testing");
-
-
-       
+        // dd("testing");       
         // Handle GeoJSON FeatureCollection format
         if (isset($state['geojson']['type']) && $state['geojson']['type'] === 'FeatureCollection') {
             $features = $state['geojson']['features'] ?? [];
@@ -116,13 +113,32 @@ class ZoneResource extends Resource
 
         $set('alias', $coordinate);
     })
-    ->afterStateHydrated(function ($state, $record, Set $set): void {
-        $set('location', [
-            'lat'     => 0, // Default latitude
-            'lng'     => 0, // Default longitude
-            'geojson' => '{}', // Default GeoJSON
-        ]);
-    })
+    ->afterStateHydrated(function (Set $set, Get $get, $state, $record): void {
+        if ($record && !empty($record->coordinates)) {
+            $geojson = DB::selectOne("SELECT ST_AsGeoJSON(coordinates) AS geojson FROM zones WHERE id = ?", [$record->id])->geojson ?? '{}';
+    
+            if ($geojson) {
+                $geojsonDecoded = json_decode($geojson, true);
+                if (isset($geojsonDecoded['coordinates'])) {
+                    $geojsonFeatureCollection = [
+                        'type'     => 'FeatureCollection',
+                        'features' => [
+                            [
+                                'type'       => 'Feature',
+                                'geometry'   => $geojsonDecoded,
+                                'properties' => []
+                            ]
+                        ]
+                    ];
+                }
+                $set('location', [
+                    'lat' => $geojsonDecoded['coordinates'][0][0][1],
+                    'lng' => $geojsonDecoded['coordinates'][0][0][0],
+                    'geojson' => $geojsonFeatureCollection
+                ]);
+            }
+        }
+    })    
     ->extraStyles([
         'min-height: 50vh',
         'border-radius: 50px',

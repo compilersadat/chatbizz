@@ -18,8 +18,8 @@ class ProductCategoryResource extends Resource
     protected static ?string $model = ProductCategory::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
-    protected static ?string $navigationGroup = 'E-commerce';
-
+    protected static ?string $navigationGroup = 'Catalog';
+    
     public static function form(Form $form): Form
     {
         return $form
@@ -54,6 +54,10 @@ class ProductCategoryResource extends Resource
                         return $state === 1 ? 'Published' : 'Unpublished';
                     })
                     ->sortable(),
+                    Tables\Columns\ImageColumn::make('thumbnail')
+                    ->label('Thumbnail')
+                    ->circular(), // Optional: Makes image circular
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

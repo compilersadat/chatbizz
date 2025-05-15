@@ -20,8 +20,9 @@ class ProductResource extends Resource
     protected static ?string $model = Product::class;
 
     protected static ?string $navigationIcon = 'heroicon-s-cube';
-    protected static ?string $navigationGroup = 'E-commerce';
-
+    protected static ?string $navigationGroup = 'Catalog';
+    
+    
     public static function form(Form $form): Form
     {
         return $form
@@ -43,7 +44,11 @@ class ProductResource extends Resource
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
-                    ->prefix('$'),
+                    ->prefix('Rs'),
+                Forms\Components\TextInput::make('discount_price')
+                    ->required()
+                    ->numeric()
+                    ->prefix('Rs'),
                 Forms\Components\Select::make('status')
                     ->label('Status') // Optional: To set a custom label
                     ->options([
@@ -51,6 +56,18 @@ class ProductResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
+
+                Forms\Components\FileUpload::make('thumbnail')
+                    ->label('Thumbnail')
+                    ->image()
+                    ->imagePreviewHeight('150')
+                    ->directory('thumbnails')
+                    ->visibility('public'),
+            
+                Forms\Components\TextInput::make('description')
+                    ->label('Description')
+                    ->columnSpanFull(),
+                
             ]);
     }
 
@@ -80,14 +97,14 @@ class ProductResource extends Resource
                         return $state === 1 ? 'Published' : 'Unpublished';
                     })
                     ->sortable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+
+                    Tables\Columns\ImageColumn::make('thumbnail')
+                        ->label('Thumbnail')
+                        ->circular(), // Optional: Makes image circular
+
+                    Tables\Columns\TextColumn::make('description')
+                    ->label('description'),
+               
             ])
             ->filters([
                 //

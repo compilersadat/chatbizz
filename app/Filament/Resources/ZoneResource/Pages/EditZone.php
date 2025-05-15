@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ZoneResource\Pages;
 use App\Filament\Resources\ZoneResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditZone extends EditRecord
 {
@@ -15,15 +16,5 @@ class EditZone extends EditRecord
         return [
             Actions\DeleteAction::make(),
         ];
-    }
-
-    protected function mutateFormDataBeforeSave(array $data): array
-    {
-        // Example: Ensure coordinates are saved as WKT
-        if (isset($data['coordinates'])) {
-            $data['coordinates'] = DB::raw("ST_GeomFromText('{$data['coordinates']}')");
-        }
-
-        return $data;
     }
 }

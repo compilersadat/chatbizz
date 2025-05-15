@@ -13,14 +13,30 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Wizard;
+use Illuminate\Support\Facades\Hash;
+
 
 class RiderResource extends Resource
 {
     protected static ?string $model = Rider::class;
 
+    public static function getModelLabel(): string
+    {
+        return 'Delivery Boy'; // Singular name
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Delivery Boys'; // Plural name
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-rocket-launch';
     protected static ?string $navigationGroup = 'Delivery';
 
+    protected function getCreateFormActionLabel(): string
+    {
+        return 'Add';
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -39,49 +55,37 @@ class RiderResource extends Resource
                             ->required()
                             ->email(),
                         Forms\Components\TextInput::make('password')
-                            ->required()
-                            ->password(),
-                        
+                        ->password()
+                        ->nullable() // Allow null values during updates
+                        ->required(fn ($livewire) => $livewire instanceof \Filament\Resources\Pages\CreateRecord) // Only required on create
+                        ->dehydrateStateUsing(fn ($state) => !empty($state) ? Hash::make($state) : null) // Hash password if provided
+                        ->dehydrated(fn ($state) => !empty($state)), // Prevent overwriting with null
+                    
                         Forms\Components\Select::make('status')
-                            ->label('Category Status')
+                            ->label('Account Status')
                             ->options([
                                 1 => 'Published',
                                 0 => 'Unpublished',
                             ])
-                            ->required()->columnSpanFull(),
-                        Forms\Components\FileUpload::make('rimg')->label('Rider Image')
-                            ->required()
-                            ->columnSpanFull(),
-                    ])->columns(2),
-                
-
-                    Forms\Components\Section::make('General Information')
-                    ->schema([
-
-                        Forms\Components\Select::make('vehiid')
-                            ->relationship('vehicle','title')
-                            ->label('Select Vehicle Type')
-                            ->searchable()
-                            ->preload(),
-
-                        Forms\Components\TextInput::make('lcode')
-                            ->maxLength(255),
-
+                            ->required(),
                         
-                        Forms\Components\TextInput::make('commission')
-                            ->required()
-                            ->numeric(),
-
+                        Forms\Components\Select::make('rstatus')
+                            ->label('Profile Status')
+                            ->options([
+                                1 => 'Active',
+                                0 => 'Inactive',
+                            ])
+                            ->required(),
                         Forms\Components\TextInput::make('rate')
                             ->required()
                             ->numeric(),
-                        
-                        Forms\Components\TextInput::make('rstatus')
+                        Forms\Components\FileUpload::make('rimg')->label('Deliver Boy Image')
                             ->required()
-                            ->numeric()
-                            ->default(1),
+                            ->columnSpanFull(),
 
-                    ])->columns(2)->collapsible(),
+                       
+                    ])->columns(2),
+            
                 
                
                
@@ -111,6 +115,14 @@ class RiderResource extends Resource
                 //     ->numeric()
                 //     ->default(0),
               
+                Forms\Components\Section::make('Verificatio Info')
+                    ->description('Provide legal information for verification')
+                    ->aside()
+                    ->icon('heroicon-m-check')
+                        ->schema([
+                            Forms\Components\TextInput::make('adhar_id')
+                                ->required(),
+                        ])->columns(1),
                
 
                    
@@ -154,7 +166,6 @@ class RiderResource extends Resource
                         ->required(),
                     Forms\Components\TextInput::make('acc_number')
                         ->required(),
-                    Forms\Components\TextInput::make('paypal_id'),
                     Forms\Components\TextInput::make('upi_id'),
                     ])->columns(2)
 
@@ -169,7 +180,7 @@ class RiderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Category Status')
+                    ->label('Account Status')
                     ->badge()
                     ->formatStateUsing(fn ($state) => $state === 1 ? 'Published' : 'Unpublished')
                     ->color(fn (string $state): string => match ($state) {
@@ -177,19 +188,21 @@ class RiderResource extends Resource
                         '0' => 'danger',
                     })
                     ->sortable(),
+                
+                Tables\Columns\TextColumn::make('rstatus')
+                    ->label('Profile Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state === 1 ? 'Active' : 'Inactive')
+                    ->color(fn (string $state): string => match ($state) {
+                        '1' => 'info',
+                        '0' => 'danger',
+                    })
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('rate')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('lcode')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('pincode')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('commission')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('rstatus')
-                    ->numeric()
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('mobile')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('accept')
@@ -202,9 +215,7 @@ class RiderResource extends Resource
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('dzone')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('vehiid')
+                    ->label('Delivery Zone')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

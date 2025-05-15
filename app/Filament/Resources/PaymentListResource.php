@@ -16,7 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PaymentListResource extends Resource
 {
     protected static ?string $model = PaymentList::class;
-
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    } 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

@@ -17,6 +17,11 @@ class DropPointResource extends Resource
 {
     protected static ?string $model = DropPoint::class;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    } 
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     // protected static bool $shouldRegisterNavigation = false;

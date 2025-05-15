@@ -17,6 +17,8 @@ class Product extends Model
         'title',
         'price',
         'status',
+        'description',
+        'thumbnail'
     ];
 
     // Relationship with Pcat (tbl_pcat)
@@ -30,4 +32,16 @@ class Product extends Model
     {
         return $this->belongsTo(SubCategory::class, 'subcat_id');
     }
+
+    public function merchantProducts()
+{
+    return $this->hasMany(MerchantProduct::class, 'product_id');
+}
+
+public function merchants()
+{
+    return $this->belongsToMany(Merchant::class, 'merchant_products');
+}
+
+
 }

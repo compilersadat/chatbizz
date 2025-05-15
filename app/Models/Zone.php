@@ -44,6 +44,19 @@ class Zone extends Model
         }
     }
     
+    public function getCoordinatesAttribute($value)
+{
+    if (!$value) {
+        return null;
+    }
+
+    // Get the WKT representation of the geometry field
+    $result = DB::selectOne("SELECT ST_AsText(coordinates) AS wkt FROM zones WHERE coordinates = ?", [$value]);
+
+    return $result->wkt ?? null;
+}
+
+    
     // Accessor for coordinates to return in the desired format
     // public function getCoordinatesAttribute($value)
     // {

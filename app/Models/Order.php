@@ -21,6 +21,8 @@ class Order extends Model
         'pick_address',
         'pick_lat',
         'pick_lng',
+        'drop_lat',
+        'drop_lng',
         'subtotal',
         'o_total',
         'cou_id',
@@ -34,6 +36,7 @@ class Order extends Model
         'rlats',
         'rlongs',
         'delivertime',
+        'distance'
     ];
 
     // Define relationships
@@ -66,5 +69,9 @@ class Order extends Model
     {
         return $this->belongsTo(Coupon::class, 'cou_id');
     }
-
+    public function orderProducts()
+    {
+        return $this->hasMany(OrderProduct::class, 'order_id');
+    }
+    
 }

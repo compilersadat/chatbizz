@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class WalletReportResource extends Resource
 {
     protected static ?string $model = WalletReport::class;
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    } 
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

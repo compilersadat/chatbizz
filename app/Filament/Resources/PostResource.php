@@ -22,7 +22,10 @@ use Filament\Forms\Components\Grid;
 class PostResource extends Resource
 {
     protected static ?string $model = Post::class;
-
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    } 
     protected static ?string $navigationIcon = 'heroicon-o-document-plus';
     protected static ?string $navigationGroup = 'Content';
 
