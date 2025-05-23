@@ -16,6 +16,7 @@ class Product extends Model
         'subcat_id',
         'title',
         'price',
+        'discount_price',
         'status',
         'description',
         'thumbnail'
