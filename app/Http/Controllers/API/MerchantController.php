@@ -14,26 +14,63 @@ class MerchantController extends Controller
     
     public function firebaseLogin(Request $request)
     {
+        // Retrieve the ID token from the request input.
         $idToken = $request->input('idToken');
+
+        // Get the path to Firebase credentials from environment variables.
+        // Ensure 'FIREBASE_CREDENTIALS' is correctly set in your .env file
+        // pointing to your service account JSON file.
         $firebaseCredentialsPath = env('FIREBASE_CREDENTIALS');
 
-        $auth = (new Factory)->withServiceAccount($firebaseCredentialsPath)->createAuth();
-    
+        // Check if the Firebase credentials path is set.
+        if (empty($firebaseCredentialsPath)) {
+            // Return an error if credentials path is not configured.
+            return response()->json(['error' => 'Firebase credentials path not configured.'], 500);
+        }
+
         try {
+            // Create a Firebase Factory instance using the service account.
+            $factory = (new Factory)->withServiceAccount($firebaseCredentialsPath);
+
+            // Get the Firebase Authentication instance.
+            $auth = $factory->createAuth();
+
+            // Verify the Firebase ID token. This throws an exception if invalid.
             $verifiedIdToken = $auth->verifyIdToken($idToken);
+
+            // Extract the Firebase UID (subject) from the verified token claims.
             $firebaseUid = $verifiedIdToken->claims()->get('sub');
+
+            // Extract the phone number from the verified token claims.
             $phoneNumber = $verifiedIdToken->claims()->get('phone_number');
-    
-            $user = Merchant::firstOrCreate(
-                ['mobile' => $phoneNumber],
-                ['name' => $phoneNumber, 'status' => 0]
-            );
-    
-            // Optionally generate your app's token/session here
-            return response()->json(['message' => 'Login successful', 'user' => $user]);
-    
+
+            // Initialize a message variable for the response.
+            $message = '';
+
+            // Attempt to find an existing merchant by phone number.
+            $user = Merchant::where('mobile', $phoneNumber)->first();
+
+            // Check if a user was found.
+            if ($user) {
+                // If user exists, it's a login for an already registered user.
+                $message = 'Login successful (existing user).';
+            } else {
+                // If user does not exist, create a new merchant record.
+                // 'name' is set to the phone number, and 'status' is 0.
+                $user = Merchant::create(
+                    ['mobile' => $phoneNumber, 'name' => $phoneNumber, 'status' => 0]
+                );
+                $message = 'Registration successful (new user).';
+            }
+            $token = $user->createToken('mobile-login')->plainTextToken;
+            return response()->json(['message' => $message, 'user' => $user,'token' => $token]);
+
+        } catch (\Kreait\Firebase\Exception\Auth\InvalidToken $e) {
+            return response()->json(['error' => 'Invalid or expired Firebase ID token.'], 401);
+        } catch (\Kreait\Firebase\Exception\FirebaseException $e) {
+            return response()->json(['error' => 'Firebase error: ' . $e->getMessage()], 500);
         } catch (\Throwable $e) {
-            return response()->json(['error' => 'Invalid token'], 401);
+            return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
     }
     
