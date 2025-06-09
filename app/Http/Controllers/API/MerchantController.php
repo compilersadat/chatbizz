@@ -10,18 +10,32 @@ use App\Models\Merchant;
 class MerchantController extends Controller
 {
     public function sendOtp(Request $request)
-    {
-        $request->validate(['mobile' => 'required|digits:10']);
+{
+    $request->validate([
+        'mobile' => 'required|digits:10',
+    ]);
 
-        $otp = rand(100000, 999999);
-        $user = Merchant::updateOrCreate(
-            ['mobile' => $request->mobile],
-            ['otp' => $otp],
-        );
+    $otp = rand(100000, 999999);
 
-        // TODO: Send OTP via SMS API (for now return in response)
-        return response()->json(['message' => 'OTP sent', 'otp' => $otp]);
+    $user = Merchant::where('mobile', $request->mobile)->first();
+
+    if (!$user) {
+        // Create a new merchant with name same as mobile
+        $user = Merchant::create([
+            'mobile' => $request->mobile,
+            'name' => $request->mobile, // name = mobile
+            'otp' => $otp,
+        ]);
+    } else {
+        // Just update the OTP
+        $user->otp = $otp;
+        $user->save();
     }
+
+    // TODO: Send OTP via SMS API (for now return in response)
+    return response()->json(['message' => 'OTP sent', 'otp' => $otp]);
+}
+
 
     public function verifyOtp(Request $request)
     {
