@@ -16,4 +16,9 @@ class MerchantCatagory extends Model
         'cat_img',
         'cat_status'
     ];
+
+    public function merchants()
+    {
+        return $this->hasMany(Merchant::class, 'catagory_id');
+    }
 }
