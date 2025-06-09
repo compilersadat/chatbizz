@@ -8,6 +8,7 @@ use App\Http\Controllers\API\MerchantController;
 use App\Http\Controllers\API\MerchantCategoryController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\AddressController;
+use App\Http\Controllers\API\CategoryController;
 
 /*
 |--------------------------------------------------------------------------
