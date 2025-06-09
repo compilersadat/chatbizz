@@ -5,10 +5,39 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Merchant;
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\Auth;
 
 
 class MerchantController extends Controller
 {
+    
+    public function firebaseLogin(Request $request)
+    {
+        $idToken = $request->input('idToken');
+        $firebaseCredentialsPath = env('FIREBASE_CREDENTIALS');
+
+        $auth = (new Factory)->withServiceAccount($firebaseCredentialsPath)->createAuth();
+    
+        try {
+            $verifiedIdToken = $auth->verifyIdToken($idToken);
+            $firebaseUid = $verifiedIdToken->claims()->get('sub');
+            $phoneNumber = $verifiedIdToken->claims()->get('phone_number');
+    
+            $user = Merchant::firstOrCreate(
+                ['mobile' => $phoneNumber],
+                ['name' => $phoneNumber, 'status' => 0]
+            );
+    
+            // Optionally generate your app's token/session here
+            return response()->json(['message' => 'Login successful', 'user' => $user]);
+    
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'Invalid token'], 401);
+        }
+    }
+    
+
     public function sendOtp(Request $request)
 {
     $request->validate([
