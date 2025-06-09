@@ -59,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/delvery-boy/login', [DriverAuthController::class, 'login']);
 Route::post('/user/login', [MerchantController::class, 'sendOtp']);
-Route::post('/user/login', [MerchantController::class, 'verifyOtp']);
+Route::post('/user/verifyOtp', [MerchantController::class, 'verifyOtp']);
 Route::get('/categories-with-merchants', [MerchantCategoryController::class, 'index']);
 Route::get('/merchant/{merchantId}/products', [ProductController::class, 'getProductsByMerchant']);
 Route::get('/products', [ProductController::class, 'getAllProducts']);
