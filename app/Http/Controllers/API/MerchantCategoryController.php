@@ -8,7 +8,7 @@ use App\Models\MerchantCatagory;
 
 class MerchantCategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $search = $request->query('search');
         $perPage = $request->query('per_page', 10); // default to 10
