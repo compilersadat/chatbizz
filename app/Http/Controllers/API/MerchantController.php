@@ -139,7 +139,7 @@ class MerchantController extends Controller
 
         // If a search term is provided, filter merchants based on name or other fields
         if ($search) {
-            $merchantsQuery->where('name', 'like', "%{$search}%")
+            $merchantsQuery->where('name', 'like', "%{$search}%")->where('status',1)
                            ->orWhere('mobile', 'like', "%{$search}%")
                            ->orWhere('address', 'like', "%{$search}%");
         }
