@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Merchant;
 use Illuminate\Http\Request;
+use App\Models\ProductCategory;
 
 class ProductController extends Controller
 {
