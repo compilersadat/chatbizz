@@ -37,37 +37,39 @@ class ProductController extends Controller
     
     public function getProductsByMerchant($merchantId, Request $request)
     {
-        // Get the search query from request (if any)
-        $search = $request->query('search');
-        $perPage = $request->query('per_page', 10); // default to 10 if not provided
+        $perPage = $request->input('per_page', 10);
 
-        // Fetch the merchant by ID, and load the products through the pivot table (merchant_products)
-        $merchant = Merchant::find($merchantId);
+        // Get categories that have products linked to this merchant
+        $categories = ProductCategory::whereHas('products.merchants', function($q) use ($merchantId) {
+            $q->where('merchants.id', $merchantId);
+        })->with([
+            'subcategories' => function($q) use ($merchantId) {
+                $q->whereHas('products.merchants', function($q2) use ($merchantId) {
+                    $q2->where('merchants.id', $merchantId);
+                })->with(['products' => function($q3) use ($merchantId) {
+                    $q3->whereHas('merchants', function($q4) use ($merchantId) {
+                        $q4->where('merchants.id', $merchantId);
+                    });
+                }]);
+            }
+        ])->paginate($perPage);
 
-        // If merchant does not exist, return a 404 response
-        if (!$merchant) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Merchant not found'
-            ], 404);
-        }
-
-        // Query for products associated with the merchant
-        $productsQuery = $merchant->merchantProducts()
-            ->with('product') // eager load product details
-            ->when($search, function ($query) use ($search) {
-                // Search for products based on product name (or any other field)
-                $query->whereHas('product', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
-                });
-            });
-
-        // Paginate the results
-        $products = $productsQuery->paginate($perPage);
+        // Only include products that belong to the merchant (filter at each level)
+        $data = $categories->through(function($category) use ($merchantId) {
+            $subcategories = $category->subcategories->map(function($subcat) use ($merchantId) {
+                $products = $subcat->products->filter(function($product) use ($merchantId) {
+                    return $product->merchants->pluck('id')->contains($merchantId);
+                })->values();
+                $subcat->setRelation('products', $products);
+                return $subcat;
+            })->values();
+            $category->setRelation('subcategories', $subcategories);
+            return $category;
+        });
 
         return response()->json([
             'success' => true,
-            'data' => $products
+            'data' => $categories
         ]);
     }
 }
