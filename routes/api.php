@@ -56,6 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
      
      // Mark an address as primary
      Route::put('addresses/{id}/primary', [AddressController::class, 'setPrimary']);
+
+     Route::post('/merchant/add-products', [MerchantController::class, 'addProductsToMerchant']);
+
 });
 
 Route::post('/delvery-boy/login', [DriverAuthController::class, 'login']);

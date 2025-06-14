@@ -14,7 +14,11 @@ class MerchantProduct extends Model
     protected $fillable = [
         'merchant_id',
         'product_id',
-    ];
+        'stock',
+        'price',
+        'discount',
+        'description'
+    ]
 
     /**
      * Define the relationship with Merchant model.

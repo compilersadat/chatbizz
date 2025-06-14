@@ -154,4 +154,39 @@ class MerchantController extends Controller
         ]);
     }
 
+    public function addProductsToMerchant(Request $request)
+    {
+        $request->validate([
+            'products' => 'required|array',
+            'products.*.product_id' => 'required|exists:tbl_product,id',
+            'products.*.stock' => 'nullable|integer|min:0',
+            'products.*.price' => 'nullable|numeric|min:0',
+            'products.*.discount' => 'nullable|numeric|min:0',
+            'products.*.description' => 'nullable|string'
+        ]);
+    
+        $merchant = Merchant::findOrFail($request->user()->id);
+    
+        foreach ($request->products as $prod) {
+            MerchantProduct::updateOrCreate(
+                [
+                    'merchant_id' =>  $request->user()->id,
+                    'product_id' => $prod['product_id'],
+                ],
+                [
+                    'stock' => $prod['stock'] ?? null,
+                    'price' => $prod['price'] ?? null,
+                    'discount' => $prod['discount'] ?? null,
+                    'description' => $prod['description'] ?? null,
+                ]
+            );
+        }
+    
+        return response()->json([
+            'success' => true,
+            'message' => 'Products added/updated for merchant successfully.'
+        ]);
+    }
+    
+
 }

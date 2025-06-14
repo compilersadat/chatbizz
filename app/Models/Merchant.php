@@ -42,7 +42,8 @@ class Merchant extends Authenticatable
 }
 public function products()
 {
-    return $this->belongsToMany(Product::class, 'merchant_products');
+    return $this->belongsToMany(Product::class, 'merchant_products')
+        ->withPivot('stock', 'price', 'discount', 'description');
 }
 
 }
