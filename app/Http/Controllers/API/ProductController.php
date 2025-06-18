@@ -94,12 +94,17 @@ class ProductController extends Controller
             }
         ])->paginate($perPage);
 
-        // Only include products that belong to the merchant (filter at each level)
+      
         $data = $categories->through(function($category) use ($merchantId) {
             $subcategories = $category->subcategories->map(function($subcat) use ($merchantId) {
                 $products = $subcat->products->filter(function($product) use ($merchantId) {
                     return $product->merchants->pluck('id')->contains($merchantId);
                 })->values();
+                // Remove 'merchants' from each product
+                $products->transform(function($product) {
+                    unset($product->merchants);
+                    return $product;
+                });
                 $subcat->setRelation('products', $products);
                 return $subcat;
             })->values();
@@ -109,7 +114,7 @@ class ProductController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $categories
+            'data' => $data
         ]);
     }
 }
