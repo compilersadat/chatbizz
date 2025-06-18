@@ -59,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
      Route::post('/merchant/add-products', [MerchantController::class, 'addProductsToMerchant']);
 
-     Route::get('/merchant/products', [ProductController::class, 'getMerchantProducts']);
+     Route::post('/merchant/products', [ProductController::class, 'getMerchantProducts']);
 
 });
 
