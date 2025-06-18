@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Merchant;
 use Illuminate\Http\Request;
 use App\Models\ProductCategory;
+use App\Models\MerchantProduct;
 
 class ProductController extends Controller
 {
@@ -38,6 +39,7 @@ class ProductController extends Controller
     
     public function getProductsByMerchant($merchantId, Request $request)
     {
+        return MerchantProduct::all();
         $perPage = $request->input('per_page', 10);
 
         // Get categories that have products linked to this merchant
