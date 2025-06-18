@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Merchant;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
-
+use App\Models\MerchantProduct;
 
 class MerchantController extends Controller
 {
