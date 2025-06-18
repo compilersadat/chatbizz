@@ -18,7 +18,7 @@ class MerchantProduct extends Model
         'price',
         'discount',
         'description'
-    ]
+    ];
 
     /**
      * Define the relationship with Merchant model.
