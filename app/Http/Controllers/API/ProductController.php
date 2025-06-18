@@ -74,5 +74,43 @@ class ProductController extends Controller
             'data' => $categories
         ]);
     }
+
+    public function getMerchantProducts(Request $request)
+    {
+        $perPage = $request->input('per_page', 10);
+        $merchantId = $request->user()->id;
+        // Get categories that have products linked to this merchant
+        $categories = ProductCategory::whereHas('products.merchants', function($q) use ($merchantId) {
+            $q->where('merchants.id', $merchantId);
+        })->with([
+            'subcategories' => function($q) use ($merchantId) {
+                $q->whereHas('products.merchants', function($q2) use ($merchantId) {
+                    $q2->where('merchants.id', $merchantId);
+                })->with(['products' => function($q3) use ($merchantId) {
+                    $q3->whereHas('merchants', function($q4) use ($merchantId) {
+                        $q4->where('merchants.id', $merchantId);
+                    });
+                }]);
+            }
+        ])->paginate($perPage);
+
+        // Only include products that belong to the merchant (filter at each level)
+        $data = $categories->through(function($category) use ($merchantId) {
+            $subcategories = $category->subcategories->map(function($subcat) use ($merchantId) {
+                $products = $subcat->products->filter(function($product) use ($merchantId) {
+                    return $product->merchants->pluck('id')->contains($merchantId);
+                })->values();
+                $subcat->setRelation('products', $products);
+                return $subcat;
+            })->values();
+            $category->setRelation('subcategories', $subcategories);
+            return $category;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $categories
+        ]);
+    }
 }
 
