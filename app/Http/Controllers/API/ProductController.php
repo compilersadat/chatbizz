@@ -79,43 +79,51 @@ class ProductController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $merchantId = $request->user()->id;
-        // Get categories that have products linked to this merchant
+    
+        // Get categories with subcategories & products filtered by this merchant
         $categories = ProductCategory::whereHas('products.merchants', function($q) use ($merchantId) {
-            $q->where('merchants.id', $merchantId);
-        })->with([
-            'subcategories' => function($q) use ($merchantId) {
-                $q->whereHas('products.merchants', function($q2) use ($merchantId) {
+                $q->where('merchants.id', $merchantId);
+            })
+            ->with(['subcategories.products' => function($q) use ($merchantId) {
+                $q->whereHas('merchants', function($q2) use ($merchantId) {
                     $q2->where('merchants.id', $merchantId);
-                })->with(['products' => function($q3) use ($merchantId) {
-                    $q3->whereHas('merchants', function($q4) use ($merchantId) {
-                        $q4->where('merchants.id', $merchantId);
-                    });
+                })->with(['merchants' => function($q3) use ($merchantId) {
+                    $q3->where('merchants.id', $merchantId);
                 }]);
-            }
-        ])->paginate($perPage);
-
-      
+            }])
+            ->paginate($perPage);
+    
+        // Remove merchants array and only include pivot fields
         $data = $categories->through(function($category) use ($merchantId) {
-            $subcategories = $category->subcategories->map(function($subcat) use ($merchantId) {
-                $products = $subcat->products->filter(function($product) use ($merchantId) {
-                    return $product->merchants->pluck('id')->contains($merchantId);
-                })->values();
-                // Remove 'merchants' from each product
-                $products->transform(function($product) {
-                    unset($product->merchants);
-                    return $product;
+            $category->subcategories->transform(function($subcat) use ($merchantId) {
+                $subcat->products->transform(function($product) use ($merchantId) {
+                    // Only get the current merchant's pivot data
+                    $pivot = $product->merchants->first()?->pivot;
+                    // Prepare product data
+                    return [
+                        'id' => $product->id,
+                        'title' => $product->title,
+                        'thumbnail' => $product->thumbnail,
+                        'status' => $product->status,
+                        'created_at' => $product->created_at,
+                        'updated_at' => $product->updated_at,
+                        // Merchant-specific fields
+                        'stock' => $pivot?->stock,
+                        'price' => $pivot?->price,
+                        'discount_price' => $pivot?->discount,
+                        'description' => $pivot?->description,
+                    ];
                 });
-                $subcat->setRelation('products', $products);
                 return $subcat;
-            })->values();
-            $category->setRelation('subcategories', $subcategories);
+            });
             return $category;
         });
-
+    
         return response()->json([
             'success' => true,
             'data' => $data
         ]);
     }
+    
 }
 
