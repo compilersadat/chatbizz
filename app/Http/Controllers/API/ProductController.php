@@ -39,7 +39,6 @@ class ProductController extends Controller
     
     public function getProductsByMerchant($merchantId, Request $request)
     {
-        return MerchantProduct::all();
         $perPage = $request->input('per_page', 10);
 
         // Get categories that have products linked to this merchant
