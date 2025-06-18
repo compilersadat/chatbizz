@@ -31,6 +31,12 @@ class Merchant extends Authenticatable
         'discount_price'
     ];
 
+    public function setMobileAttribute($value)
+{
+    $value = preg_replace('/^\+91\s?/', '', trim($value)); // Remove existing +91 if any
+    $this->attributes['mobile'] = '+91' . $value;
+}
+
     public function merchantcategory()
     {
         return $this->belongsTo(MerchantCatagory::class, 'catagory_id');
