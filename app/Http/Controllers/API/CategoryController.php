@@ -12,20 +12,25 @@ class CategoryController extends Controller
      * Get categories with subcategories and products.
      */
     public function getCategoriesWithSubcategories(Request $request)
-    {
-        $perPage = $request->get('per_page', 10); // Default to 10 items per page
-        $page = $request->get('page', 1); // Default to the first page
+{
+    $perPage = $request->get('per_page', 10);
+    $merchantId = $request->user()->id;
 
-        // Get categories with subcategories and products, paginated
-        $categories = ProductCategory::with(['subcategories.products'])
-            ->paginate($perPage); // Paginate categories
+    // Get categories, subcategories, and for each subcategory, only products NOT linked to this merchant
+    $categories = ProductCategory::with([
+        'subcategories.products' => function ($q) use ($merchantId) {
+            // Filter products NOT belonging to the current merchant
+            $q->whereDoesntHave('merchants', function ($q2) use ($merchantId) {
+                $q2->where('merchants.id', $merchantId);
+            });
+        }
+    ])->paginate($perPage);
 
-        // Return the paginated data as JSON
-        return response()->json([
-            'success' => true,
-            'data' => $categories
-        ]);
+    return response()->json([
+        'success' => true,
+        'data' => $categories
+    ]);
+}
 
-    }
 }
 

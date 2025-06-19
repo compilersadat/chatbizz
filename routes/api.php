@@ -60,6 +60,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/merchant/add-products', [MerchantController::class, 'addProductsToMerchant']);
 
      Route::post('/merchant/products', [ProductController::class, 'getMerchantProducts']);
+     Route::get('/categories-with-subcategories', [CategoryController::class, 'getCategoriesWithSubcategories']);
+
 
 });
 
@@ -70,4 +72,3 @@ Route::get('/categories-with-merchants', [MerchantCategoryController::class, 'in
 Route::get('/merchant/{merchantId}/products', [ProductController::class, 'getProductsByMerchant']);
 Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
-Route::get('/categories-with-subcategories', [CategoryController::class, 'getCategoriesWithSubcategories']);
