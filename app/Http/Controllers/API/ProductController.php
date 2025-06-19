@@ -79,7 +79,6 @@ class ProductController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $merchantId = $request->user()->id;
-        return $merchantId;
         // Get categories with subcategories & products filtered by this merchant
         $categories = ProductCategory::whereHas('products.merchants', function($q) use ($merchantId) {
                 $q->where('merchants.id', $merchantId);

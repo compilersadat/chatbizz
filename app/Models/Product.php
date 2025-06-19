@@ -39,9 +39,18 @@ class Product extends Model
     return $this->hasMany(MerchantProduct::class, 'product_id');
 }
 
+public function merchantProduct()
+{
+    // This returns the pivot row for the currently loaded merchant
+    return $this->hasOne(MerchantProduct::class, 'product_id', 'id')
+        ->where('merchant_id', auth()->id());
+}
+
+
 public function merchants()
 {
-    return $this->belongsToMany(Merchant::class, 'merchant_products');
+    return $this->belongsToMany(Merchant::class, 'merchant_products')
+        ->withPivot(['stock', 'price', 'discount', 'description']);
 }
 
 
