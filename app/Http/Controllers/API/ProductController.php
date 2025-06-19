@@ -107,9 +107,9 @@ class ProductController extends Controller
                         'created_at' => $product->created_at,
                         'updated_at' => $product->updated_at,
                         // Merchant-specific fields
-                        'stock' => $pivot?->stock,
-                        'price' => $pivot?->price,
-                        'discount_price' => $pivot?->discount,
+                        'stock' => $pivot?->stock !== null ? (int)$pivot->stock : null,
+                        'price' => $pivot?->price !== null ? (float)$pivot->price : null,
+                        'discount_price' => $pivot?->discount !== null ? (float)$pivot->discount : null,
                         'description' => $pivot?->description,
                     ];
                 });
