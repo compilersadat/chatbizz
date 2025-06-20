@@ -72,3 +72,5 @@ Route::get('/categories-with-merchants', [MerchantCategoryController::class, 'in
 Route::get('/merchant/{merchantId}/products', [ProductController::class, 'getProductsByMerchant']);
 Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
+Route::get('/search-products', [ProductController::class, 'searchProducts']);
+
