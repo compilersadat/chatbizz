@@ -15,6 +15,7 @@ class SubCategory extends Model
         'cat_id',
         'title',
         'status',
+        'image'
     ];
 
     // Define the relationship with the Category model

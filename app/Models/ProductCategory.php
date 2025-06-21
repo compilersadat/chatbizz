@@ -24,6 +24,7 @@ class ProductCategory extends Model
     protected $fillable = [
         'title',
         'status',
+        'image'
     ];
 
     public function subcategories()

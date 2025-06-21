@@ -33,6 +33,8 @@ class ProductCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
+                Forms\Components\FileUpload::make('image')->label('Category Image')
+                    ->required(),
             ]);
     }
 
@@ -54,8 +56,8 @@ class ProductCategoryResource extends Resource
                         return $state === 1 ? 'Published' : 'Unpublished';
                     })
                     ->sortable(),
-                    Tables\Columns\ImageColumn::make('thumbnail')
-                    ->label('Thumbnail')
+                    Tables\Columns\ImageColumn::make('image')
+                    ->label('image')
                     ->circular(), // Optional: Makes image circular
 
                 Tables\Columns\TextColumn::make('created_at')

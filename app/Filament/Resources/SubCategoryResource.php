@@ -40,6 +40,8 @@ class SubCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
+                    Forms\Components\FileUpload::make('image')->label('SubCategory Image')
+                    ->required(),
                 
             ]);
     }
