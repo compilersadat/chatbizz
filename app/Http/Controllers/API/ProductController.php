@@ -128,7 +128,8 @@ class ProductController extends Controller
 {
     $perPage = $request->input('per_page', 10);
     $search = $request->input('search'); // The search string
-
+    $catId = $request->input('cat_id');
+    $subcatId = $request->input('subcat_id');
     // Query merchant_products with product and merchant eager loaded
     $query = MerchantProduct::with([
         'product',
@@ -136,6 +137,12 @@ class ProductController extends Controller
     ])->whereHas('product', function($q) use ($search) {
         if ($search) {
             $q->where('title', 'like', '%' . $search . '%');
+        }
+        if ($catId) {
+            $q->where('cat_id', $catId);
+        }
+        if ($subcatId) {
+            $q->where('subcat_id', $subcatId);
         }
     });
 
