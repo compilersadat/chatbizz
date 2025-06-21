@@ -125,16 +125,23 @@ class ProductController extends Controller
     }
     
     public function searchProducts(Request $request)
-{
-    $perPage = $request->input('per_page', 10);
-    $search = $request->input('search'); // The search string
-    $catId = $request->input('cat_id');
-    $subcatId = $request->input('subcat_id');
-    // Query merchant_products with product and merchant eager loaded
-    $query = MerchantProduct::with([
-        'product',
-        'merchant',
-        ])->whereHas('product', function($q) use ($search, $catId, $subcatId) {
+    {
+        $perPage = $request->input('per_page', 10);
+        $search = $request->input('search');
+        $catId = $request->input('cat_id');
+        $subcatId = $request->input('subcat_id');
+        $merchantId = $request->input('merchant_id'); // NEW
+    
+        // Query merchant_products with product and merchant eager loaded
+        $query = MerchantProduct::with([
+            'product',
+            'merchant',
+        ])
+        // Filter by merchant_id if provided
+        ->when($merchantId, function($q) use ($merchantId) {
+            $q->where('merchant_id', $merchantId);
+        })
+        ->whereHas('product', function($q) use ($search, $catId, $subcatId) {
             if ($search) {
                 $q->where('title', 'like', '%' . $search . '%');
             }
@@ -145,36 +152,37 @@ class ProductController extends Controller
                 $q->where('subcat_id', $subcatId);
             }
         });
-
-    $products = $query->paginate($perPage);
-
-    // Transform data
-    $transformed = $products->getCollection()->map(function($item) {
-        return [
-            'id' => $item->product->id,
-            'title' => $item->product->title,
-            'thumbnail' => $item->product->thumbnail,
-            'status' => $item->product->status,
-            'created_at' => $item->product->created_at,
-            'updated_at' => $item->product->updated_at,
-            'merchant_id' => $item->merchant->id,
-            'merchant_name' => $item->merchant->name,
-            // Merchant-specific fields from pivot
-            'stock' => (int) $item->stock,
-            'price' => (float) $item->price,
-            'discount_price' => (float) $item->discount,
-            'description' => $item->description,
-        ];
-    });
-
-    // Reassign the mapped collection to paginator
-    $products->setCollection($transformed);
-
-    return response()->json([
-        'success' => true,
-        'data' => $products,
-    ]);
-}
+    
+        $products = $query->paginate($perPage);
+    
+        // Transform data
+        $transformed = $products->getCollection()->map(function($item) {
+            return [
+                'id' => $item->product->id,
+                'title' => $item->product->title,
+                'thumbnail' => $item->product->thumbnail,
+                'status' => $item->product->status,
+                'created_at' => $item->product->created_at,
+                'updated_at' => $item->product->updated_at,
+                'merchant_id' => $item->merchant->id,
+                'merchant_name' => $item->merchant->name,
+                // Merchant-specific fields from pivot
+                'stock' => (int) $item->stock,
+                'price' => (float) $item->price,
+                'discount_price' => (float) $item->discount,
+                'description' => $item->description,
+            ];
+        });
+    
+        // Reassign the mapped collection to paginator
+        $products->setCollection($transformed);
+    
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+        ]);
+    }
+    
 
 }
 
