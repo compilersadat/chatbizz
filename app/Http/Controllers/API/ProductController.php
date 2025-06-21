@@ -134,17 +134,17 @@ class ProductController extends Controller
     $query = MerchantProduct::with([
         'product',
         'merchant',
-    ])->whereHas('product', function($q) use ($search) {
-        if ($search) {
-            $q->where('title', 'like', '%' . $search . '%');
-        }
-        if ($catId) {
-            $q->where('cat_id', $catId);
-        }
-        if ($subcatId) {
-            $q->where('subcat_id', $subcatId);
-        }
-    });
+        ])->whereHas('product', function($q) use ($search, $catId, $subcatId) {
+            if ($search) {
+                $q->where('title', 'like', '%' . $search . '%');
+            }
+            if ($catId) {
+                $q->where('cat_id', $catId);
+            }
+            if ($subcatId) {
+                $q->where('subcat_id', $subcatId);
+            }
+        });
 
     $products = $query->paginate($perPage);
 
