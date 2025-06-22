@@ -9,17 +9,17 @@ class AddressController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:sanctum'); // Ensure the user is authenticated
+        $this->middleware('auth:sanctum'); // Ensure the merchant is authenticated
     }
 
-    // Get all addresses for the authenticated user
-    public function index()
+    // Get all addresses for the authenticated merchant
+    public function index(Request $request)
     {
-        $addresses = $request->user()->addresses; // Get addresses for the authenticated user
+        $addresses = $request->user()->addresses;
         return response()->json($addresses);
     }
 
-    // Store a new address for the authenticated user
+    // Store a new address for the authenticated merchant
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -33,6 +33,9 @@ class AddressController extends Controller
             'longitude' => 'nullable|numeric',
             'is_primary' => 'boolean'
         ]);
+
+        // Set merchant_id explicitly
+        $validated['merchant_id'] = $request->user()->id;
 
         $address = $request->user()->addresses()->create($validated);
 
@@ -61,7 +64,7 @@ class AddressController extends Controller
     }
 
     // Delete an address
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $address = $request->user()->addresses()->findOrFail($id);
         $address->delete();
@@ -70,7 +73,7 @@ class AddressController extends Controller
     }
 
     // Mark address as primary
-    public function setPrimary($id)
+    public function setPrimary(Request $request, $id)
     {
         $address = $request->user()->addresses()->findOrFail($id);
         $address->is_primary = true;
