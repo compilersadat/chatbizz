@@ -52,4 +52,9 @@ public function products()
         ->withPivot('stock', 'price', 'discount', 'description');
 }
 
+public function addresses()
+    {
+        return $this->hasMany(Address::class, 'user_id');
+    }
+
 }
