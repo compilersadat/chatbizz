@@ -218,7 +218,8 @@ class OrderController extends Controller
     // Optionally: filter status, paginate, etc.
     $orders = Order::with([
         'orderItems.merchantProduct.product',
-        'orderItems.merchantProduct.shop'
+        'orderItems.merchantProduct.shop',
+        'order.address'
     ])->where('user_id', $user->id)
       ->orderBy('created_at', 'desc')
       ->paginate(20);
