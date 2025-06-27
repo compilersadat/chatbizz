@@ -219,7 +219,7 @@ class OrderController extends Controller
     $orders = Order::with([
         'orderItems.merchantProduct.product',
         'orderItems.merchantProduct.shop',
-        'order.address'
+        'address'
     ])->where('user_id', $user->id)
       ->orderBy('created_at', 'desc')
       ->paginate(20);
