@@ -9,7 +9,6 @@ use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Models\Order;
 use App\Models\OrderItem;
 
 class OrderController extends Controller
