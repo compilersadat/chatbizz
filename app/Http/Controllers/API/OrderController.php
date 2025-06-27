@@ -209,4 +209,24 @@ class OrderController extends Controller
             return response()->json(['status' => 'fail'], 400);
         }
     }
+
+    public function userOrders(Request $request)
+{
+    // Get authenticated user
+    $user = $request->user();
+
+    // Optionally: filter status, paginate, etc.
+    $orders = Order::with([
+        'orderItems.merchantProduct.product',
+        'orderItems.merchantProduct.shop'
+    ])->where('user_id', $user->id)
+      ->orderBy('created_at', 'desc')
+      ->paginate(20);
+
+    // Optionally transform if you want to clean up data
+    return response()->json([
+        'success' => true,
+        'data' => $orders,
+    ]);
+}
 }

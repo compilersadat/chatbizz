@@ -17,4 +17,14 @@ class Order extends Model
     public function items() { return $this->hasMany(OrderItem::class); }
     public function user() { return $this->belongsTo(Merchant::class); }
     public function address() { return $this->belongsTo(Address::class); }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class, 'order_id');
+    }
+    public function shop()
+    {
+        return $this->belongsTo(Merchant::class, 'shop_id');
+    }
+
 }
