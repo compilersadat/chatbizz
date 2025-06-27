@@ -17,6 +17,7 @@
         "laravel/socialite": "^5.17",
         "laravel/tinker": "^2.8",
         "matanyadaev/laravel-eloquent-spatial": "^4.4",
+        "razorpay/razorpay": "^2.9",
         "rupadana/filament-api-service": "^3.4",
         "socialiteproviders/keycloak": "^5.3",
         "spatie/laravel-permission": "^6.10"

@@ -8,70 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-
-
-    protected $table = 'tbl_order';
-
     protected $fillable = [
-        'uid',
-        'rid',
-        'cat_id',
-        'dzone',
-        'vehicleid',
-        'pick_address',
-        'pick_lat',
-        'pick_lng',
-        'drop_lat',
-        'drop_lng',
-        'subtotal',
-        'o_total',
-        'cou_id',
-        'cou_amt',
-        'trans_id',
-        'o_status',
-        'dcommission',
-        'wall_amt',
-        'p_method_id',
-        'odate',
-        'rlats',
-        'rlongs',
-        'delivertime',
-        'distance'
+        'user_id', 'address_id', 'contact_name', 'contact_number',
+        'sub_total', 'delivery_charges', 'platform_fee', 'total_amount',
+        'merchant_transaction_id', 'status', 'delivery_partner_id', 'shop_id','razorpay_order_id', 'payment_gateway_id'
     ];
 
-    // Define relationships
-    public function user()
-    {
-        return $this->belongsTo(User::class, 'uid');
-    }
-
-    public function rider()
-    {
-        return $this->belongsTo(Rider::class, 'rid');
-    }
-
-    public function category()
-    {
-        return $this->belongsTo(ProductCategory::class, 'cat_id');
-    }
-
-    public function zone()
-    {
-        return $this->belongsTo(Zone::class, 'dzone');
-    }
-
-    public function vehicle()
-    {
-        return $this->belongsTo(Vehicle::class, 'vehicleid');
-    }
-
-    public function coupon()
-    {
-        return $this->belongsTo(Coupon::class, 'cou_id');
-    }
-    public function orderProducts()
-    {
-        return $this->hasMany(OrderProduct::class, 'order_id');
-    }
-    
+    public function items() { return $this->hasMany(OrderItem::class); }
+    public function user() { return $this->belongsTo(Merchant::class); }
+    public function address() { return $this->belongsTo(Address::class); }
 }
