@@ -27,8 +27,8 @@ return new class extends Migration
                 $table->enum('delivery_status', ['pending', 'assigned', 'inprocess','delivered','cancelled'])->default('pending');
                 $table->unsignedBigInteger('delivery_partner_id')->nullable();
                 $table->unsignedBigInteger('shop_id');
-                $table->string('razorpay_order_id')->unique();
-                $table->string('payment_gateway_id')->unique();
+                $table->string('razorpay_order_id')->nullable();
+                $table->string('payment_gateway_id')->nullable();
 
                 $table->timestamps();
             });
