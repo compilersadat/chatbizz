@@ -157,9 +157,9 @@ class OrderController extends Controller
                 'drop_lat' => $request->drop_lat,
                 'drop_lng' => $request->drop_lng,
                 'pick_lat' => $shop->lat,
-                'pick_lng' => $shop->lng
+                'pick_lng' => $shop->lang
             ]);
-            
+
             foreach ($request->items as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,
