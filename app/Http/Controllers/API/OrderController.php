@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\OrderItem;
 use Razorpay\Api\Api;
+use App\Models\Merchant;
 
 class OrderController extends Controller
 {
@@ -131,12 +132,15 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|integer',
             'items.*.price' => 'required|numeric',
             'items.*.quantity' => 'required|integer|min:1',
+            'drop_lat' => 'required',
+            'drop_lng' => 'required',
         ]);
 
         $merchantTransactionId = uniqid('ORDER_');
 
         DB::beginTransaction();
         try {
+            $shop = Merchant::where('id', $request->shop_id)->first();
             $order = Order::create([
                 'user_id' => $request->user_id,
                 'address_id' => $request->address_id,
@@ -150,7 +154,12 @@ class OrderController extends Controller
                 'status' => 'pending',
                 'delivery_partner_id' => null,
                 'shop_id' => $request->shop_id,
+                'drop_lat' => $request->drop_lat,
+                'drop_lng' => $request->drop_lng,
+                'pick_lat' => $shop->lat,
+                'pick_lng' => $shop->lng
             ]);
+            
             foreach ($request->items as $item) {
                 OrderItem::create([
                     'order_id' => $order->id,

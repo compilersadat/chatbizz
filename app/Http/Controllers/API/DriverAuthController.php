@@ -45,7 +45,7 @@ class DriverAuthController extends Controller
         $driver = $request->user();
 
         // Fetch order counts in a single query
-        $orderCounts = Order::where('rid', $driver->id)
+        $orderCounts = Order::where('delivery_partner_id', $driver->id)
         ->selectRaw("
             COUNT(CASE WHEN o_status = 'Pending' THEN 1 END) as pendingCount,
             COUNT(CASE WHEN o_status = 'Completed' THEN 1 END) as completedCount,
@@ -67,8 +67,9 @@ class DriverAuthController extends Controller
         }
 
         // Fetch orders where both pickup & drop-off are inside the zone
-        $upcomingOrders =  DB::table('tbl_order')
-        ->where('o_status', 'Pending')
+        $upcomingOrders =  DB::table('orders')
+        ->where('delivery_status', 'pending')
+        ->where('status','confirmed')
         ->whereRaw("ST_Contains(ST_GeomFromText(?), (POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6)))))", [$zone])
         ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
         ->get();
