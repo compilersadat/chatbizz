@@ -151,7 +151,7 @@ class OrderController extends Controller
                 'platform_fee' => $request->platform_fee,
                 'total_amount' => $request->total_amount,
                 'merchant_transaction_id' => $merchantTransactionId,
-                'status' => 'pending',
+                'status' => 'confirmed',
                 'delivery_partner_id' => null,
                 'shop_id' => $request->shop_id,
                 'drop_lat' => $request->drop_lat,
