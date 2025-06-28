@@ -23,8 +23,27 @@ return new class extends Migration
                 $table->decimal('platform_fee', 10, 2)->default(0);
                 $table->decimal('total_amount', 10, 2);
                 $table->string('merchant_transaction_id')->unique();
-                $table->enum('status', ['pending', 'paid', 'failed','canceled','refunded'])->default('pending');
-                $table->enum('delivery_status', ['pending', 'assigned', 'inprocess','delivered','cancelled'])->default('pending');
+                $table->enum('status', [
+                    'pending',       // Placed, awaiting payment or confirmation
+                    'confirmed',     // Payment successful, order confirmed by shop
+                    'packed',        // Packed, ready for delivery
+                    'paid',          // Payment successful (optional if 'confirmed' is used)
+                    'rejected',      // Rejected by shop (NEW)
+                    'failed',        // Payment failed
+                    'canceled',      // Canceled by user/shop
+                    'refunded',      // Payment refunded
+                ])->default('pending');
+                
+                $table->enum('delivery_status', [
+                    'pending',         // Not yet assigned to delivery
+                    'assigned',        // Assigned to delivery partner
+                    'packed',          // Packed, ready for pickup
+                    'picked_up',       // Picked up by delivery
+                    'in_transit',      // On the way
+                    'delivered',       // Delivered to user
+                    'cancelled',       // Delivery cancelled
+                ])->default('pending');
+                
                 $table->unsignedBigInteger('delivery_partner_id')->nullable();
                 $table->unsignedBigInteger('shop_id');
                 $table->string('razorpay_order_id')->nullable();
