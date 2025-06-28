@@ -11,7 +11,8 @@ class Order extends Model
     protected $fillable = [
         'user_id', 'address_id', 'contact_name', 'contact_number',
         'sub_total', 'delivery_charges', 'platform_fee', 'total_amount',
-        'merchant_transaction_id', 'status', 'delivery_partner_id', 'shop_id','razorpay_order_id', 'payment_gateway_id'
+        'merchant_transaction_id', 'status', 'delivery_partner_id', 'shop_id','razorpay_order_id', 'payment_gateway_id',
+        'pick_lat','pick_lng','drop_lng','drop_lat'
     ];
 
     public function items() { return $this->hasMany(OrderItem::class); }
