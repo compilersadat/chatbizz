@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Order routes
     Route::post('/order', [OrderController::class, 'createOrder']); // Create order from cart
     // Route::get('/orders', [OrderController::class, 'getUserOrders']); // Get user orders
-    Route::put('/order/{orderId}/status', [OrderController::class, 'updateOrderStatus']);
+    Route::post('/update-order-status', [OrderController::class, 'changeOrderStatus']);
 
     Route::post('/orders', [OrderController::class, 'createWithRazorpayOrder']);
     Route::post('/orders/verify-payment', [OrderController::class, 'verifyPayment']);
