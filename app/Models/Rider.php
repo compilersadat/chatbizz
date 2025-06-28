@@ -11,37 +11,39 @@ class Rider extends Authenticatable
     use HasApiTokens, HasFactory;
 
 
-    protected $table = 'tbl_rider';
+    protected $table = 'riders';
 
     protected $fillable = [
         'title',
-        'rimg',
+        'mobile',
+        'email',
+        'password',
         'status',
+        'rstatus',
         'rate',
-        'lcode',
+        'rimg',
+        'adhar_id',
         'full_address',
         'pincode',
         'landmark',
-        'commission',
+        'dzone',
         'bank_name',
         'ifsc',
         'receipt_name',
         'acc_number',
-        'paypal_id',
         'upi_id',
-        'email',
-        'rstatus',
-        'mobile',
-        'accept',
-        'reject',
-        'complete',
-        'dzone',
-        'vehiid',
-        'adhar_id',
-        'password'
     ];
 
-    protected $hidden = ['password'];
+    /**
+     * The attributes that should be hidden for arrays (like password).
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
 
     // Relationship with Zone
     public function zone()
