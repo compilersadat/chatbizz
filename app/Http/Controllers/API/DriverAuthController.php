@@ -66,11 +66,24 @@ class DriverAuthController extends Controller
         }
 
         // Fetch orders where both pickup & drop-off are inside the zone
-        $upcomingOrders =  DB::table('orders')
-        ->where('status', 'paid')
-        ->whereRaw("ST_Contains(ST_GeomFromText(?), (POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6)))))", [$zone])
-        ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
-        ->get();
+        // $upcomingOrders =  DB::table('orders')
+        // ->where('status', 'paid')
+        // ->whereRaw("ST_Contains(ST_GeomFromText(?), (POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6)))))", [$zone])
+        // ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
+        // ->get();
+
+        use App\Models\Order;
+
+        $upcomingOrders = Order::with([
+                'orderItems.merchantProduct.product',
+                'shop',
+                'address'
+            ])
+            ->where('status', 'paid')
+            ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6))))", [$zone])
+            ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
+            ->get();
+        
 
         return response()->json([
             'data' => [
