@@ -121,6 +121,14 @@ class DriverAuthController extends Controller
     ]);
 }
 
+public function AssignDriver(Request $request)
+{
+    $driver = $request->user();
+    Order::where('id',$request->order_id)->update(['delivery_partner_id' => $driver->id, 'status' => 'assigned']);
+    return response()->json(['message' => 'Order updated.']);
+
+}
+
 
     public function updateDriverProfileStatus(Request $request)
     {

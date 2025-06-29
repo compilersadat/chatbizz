@@ -30,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/delvery-boy/profile', [DriverAuthController::class, 'profile']); // Example profile route
     Route::get('/delvery-boy/orders', [DriverAuthController::class, 'driverOrders']);
     Route::get('/delvery-boy/updateStatus', [DriverAuthController::class, 'updateDriverProfileStatus']); 
+    Route::post('/delvery-by/accept-order', [DriverAuthController::class,'AssignDriver'])
 
     // Cart routes
     Route::post('/cart', [CartController::class, 'addToCart']); // Add to cart
