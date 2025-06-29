@@ -73,15 +73,20 @@ class DriverAuthController extends Controller
         // ->get();
 
         $upcomingOrders = Order::with([
-                'orderItems.merchantProduct.product',
-                'shop.address','shop.name',
-                'address.address_line_1','address.address_line_2','address.city','address.state',
-                'address.postal_code','address.country'
-            ])
-            ->where('status', 'paid')
-            ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6))))", [$zone])
-            ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
-            ->get();
+            'orderItems.merchantProduct.product',
+
+            'shop' => function($q) {
+                $q->select('address', 'name');
+            },
+            'address' => function($q) {
+                $q->select('address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
+            },
+        ])
+        ->where('status', 'paid')
+        ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6))))", [$zone])
+        ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
+        ->get();
+        
         
 
         return response()->json([
