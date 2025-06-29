@@ -49,7 +49,7 @@ class DriverAuthController extends Controller
             COUNT(CASE WHEN status = 'assigned' THEN 1 END) as pendingCount,
             COUNT(CASE WHEN status = 'delivered' THEN 1 END) as completedCount,
             COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledCount,
-            SUM(delivery_charges) as totalCommission
+            SUM(CASE WHEN status = 'delivered' THEN delivery_charges ELSE 0 END) as totalCommission
         ")
         ->first();
 
