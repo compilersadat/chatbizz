@@ -72,8 +72,6 @@ class DriverAuthController extends Controller
         // ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
         // ->get();
 
-        use App\Models\Order;
-
         $upcomingOrders = Order::with([
                 'orderItems.merchantProduct.product',
                 'shop',
