@@ -108,8 +108,12 @@ class DriverAuthController extends Controller
     // Optionally: filter status, paginate, etc.
     $orders = Order::with([
         'orderItems.merchantProduct.product',
-        'shop',
-        'address'
+        'shop' => function($q) {
+                $q->select('id','address', 'name');
+        },
+        'address' => function($q) {
+                $q->select('id','address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
+        }
     ])->where('delivery_partner_id', $driver->id)
       ->orderBy('created_at', 'desc')
       ->paginate(20);
