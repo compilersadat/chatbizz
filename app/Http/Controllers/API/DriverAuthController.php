@@ -43,13 +43,13 @@ class DriverAuthController extends Controller
     public function profile(Request $request)
     {
         $driver = $request->user();
-
+        return $driver;
         // Fetch order counts in a single query
         $orderCounts = Order::where('delivery_partner_id', $driver->id)
         ->selectRaw("
-            COUNT(CASE WHEN delivery_status = 'pending' THEN 1 END) as pendingCount,
-            COUNT(CASE WHEN delivery_status = 'delivered' THEN 1 END) as completedCount,
-            COUNT(CASE WHEN delivery_status = 'cancelled' THEN 1 END) as cancelledCount,
+            COUNT(CASE WHEN status = 'assigned' THEN 1 END) as pendingCount,
+            COUNT(CASE WHEN status = 'delivered' THEN 1 END) as completedCount,
+            COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledCount,
             SUM(delivery_charges) as totalCommission
         ")
         ->first();
@@ -68,8 +68,7 @@ class DriverAuthController extends Controller
 
         // Fetch orders where both pickup & drop-off are inside the zone
         $upcomingOrders =  DB::table('orders')
-        ->where('delivery_status', 'pending')
-        ->where('status','confirmed')
+        ->where('status', 'paid')
         ->whereRaw("ST_Contains(ST_GeomFromText(?), (POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6)))))", [$zone])
         ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
         ->get();
