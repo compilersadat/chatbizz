@@ -43,7 +43,6 @@ class DriverAuthController extends Controller
     public function profile(Request $request)
     {
         $driver = $request->user();
-        return $driver;
         // Fetch order counts in a single query
         $orderCounts = Order::where('delivery_partner_id', $driver->id)
         ->selectRaw("
@@ -83,6 +82,27 @@ class DriverAuthController extends Controller
             ]
         ]);
     }
+
+    public function driverOrders(Request $request)
+{
+    // Get authenticated user
+    $driver = $request->user();
+
+    // Optionally: filter status, paginate, etc.
+    $orders = Order::with([
+        'orderItems.merchantProduct.product',
+        'shop',
+        'address'
+    ])->where('delivery_partner_id', $driver->id)
+      ->orderBy('created_at', 'desc')
+      ->paginate(20);
+
+    // Optionally transform if you want to clean up data
+    return response()->json([
+        'success' => true,
+        'data' => $orders,
+    ]);
+}
 
 
     public function updateDriverProfileStatus(Request $request)

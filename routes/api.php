@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [DriverAuthController::class, 'logout']);
     Route::get('/delvery-boy/profile', [DriverAuthController::class, 'profile']); // Example profile route
-    Route::get('/delvery-boy/orders', [OrderController::class, 'orders']);
+    Route::get('/delvery-boy/orders', [DriverAuthController::class, 'driverOrders']);
     Route::get('/delvery-boy/updateStatus', [DriverAuthController::class, 'updateDriverProfileStatus']); 
 
     // Cart routes
