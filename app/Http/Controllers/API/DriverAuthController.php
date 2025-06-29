@@ -76,10 +76,10 @@ class DriverAuthController extends Controller
             'orderItems.merchantProduct.product',
 
             'shop' => function($q) {
-                $q->select('address', 'name');
+                $q->select('id','address', 'name');
             },
             'address' => function($q) {
-                $q->select('address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
+                $q->select('id','address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
             },
         ])
         ->where('status', 'paid')
