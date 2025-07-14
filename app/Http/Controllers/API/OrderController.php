@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\OrderItem;
 use Razorpay\Api\Api;
 use App\Models\Merchant;
+use App\Models\ServiceRequest;
 
 class OrderController extends Controller
 {
@@ -244,4 +245,91 @@ class OrderController extends Controller
         'data' => $orders,
     ]);
 }
+
+public function createServiceWithRazorpayOrder(Request $request)
+{
+    $request->validate([
+        'user_id'        => 'required|integer',
+        'pickup_address' => 'required|string',
+        'pickup_lat'     => 'required|string',
+        'pickup_long'    => 'required|string',
+        'contact_name'   => 'required|string',
+        'contact_number' => 'required|string',
+        'amount'         => 'required|numeric',
+        'note'           => 'nullable|string',
+    ]);
+
+    $transactionId = uniqid('SERVICE_');
+
+    DB::beginTransaction();
+    try {
+        $service = ServiceRequest::create([
+            'user_id'        => $request->user_id,
+            'pickup_address' => $request->pickup_address,
+            'pickup_lat'     => $request->pickup_lat,
+            'pickup_long'    => $request->pickup_long,
+            'contact_name'   => $request->contact_name,
+            'contact_number' => $request->contact_number,
+            'note'           => $request->note,
+            'status'         => 'pending',
+            'amount'         => $request->amount,
+        ]);
+
+        // Razorpay Order creation
+        $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+        $razorpayOrder = $api->order->create([
+            'receipt'         => $transactionId,
+            'amount'          => intval($request->amount * 100), // paise
+            'currency'        => 'INR',
+            'payment_capture' => 1,
+        ]);
+        $service->razorpay_order_id = $razorpayOrder['id'];
+        $service->save();
+
+        DB::commit();
+        return response()->json([
+            'service_request_id' => $service->id,
+            'razorpay_order_id'  => $razorpayOrder['id'],
+            'amount'             => intval($request->amount * 100),
+            'contact_name'       => $service->contact_name,
+            'contact_number'     => $service->contact_number,
+            'key_id'             => env('RAZORPAY_KEY_ID'),
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['error' => 'Service request creation failed', 'msg' => $e->getMessage()], 500);
+    }
+}
+public function verifyServicePayment(Request $request)
+{
+    $request->validate([
+        'razorpay_order_id'   => 'required|string',
+        'razorpay_payment_id' => 'required|string',
+        'razorpay_signature'  => 'required|string',
+    ]);
+
+    $service = ServiceRequest::where('razorpay_order_id', $request->razorpay_order_id)->firstOrFail();
+    $key_secret = env('RAZORPAY_KEY_SECRET');
+    $generated_signature = hash_hmac(
+        'sha256',
+        $request->razorpay_order_id . "|" . $request->razorpay_payment_id,
+        $key_secret
+    );
+    if ($generated_signature === $request->razorpay_signature) {
+        $service->payment_status = 'paid';
+        $service->status = 'accepted';
+        $service->razorpay_payment_id = $request->razorpay_payment_id;
+        $service->razorpay_signature = $request->razorpay_signature;
+        $service->payment_time = now();
+        $service->save();
+        return response()->json(['status' => 'success']);
+    } else {
+        $service->payment_status = 'failed';
+        $service->status = 'cancelled';
+        $service->save();
+        return response()->json(['status' => 'fail'], 400);
+    }
+}
+
+
 }

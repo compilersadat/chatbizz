@@ -134,7 +134,7 @@ public function AssignDriver(Request $request)
 }
 
 
-    public function updateDriverProfileStatus(Request $request)
+public function updateDriverProfileStatus(Request $request)
     {
         Rider::where('id', $request->user()->id)
           ->update(['rstatus' => DB::raw('IF(rstatus = 1, 0, 1)')]);
