@@ -334,7 +334,7 @@ public function verifyServicePayment(Request $request)
     );
     if ($generated_signature === $request->razorpay_signature) {
         $service->payment_status = 'paid';
-        $service->status = 'accepted';
+        $service->status = 'pending';
         $service->razorpay_payment_id = $request->razorpay_payment_id;
         $service->razorpay_signature = $request->razorpay_signature;
         $service->payment_time = now();
