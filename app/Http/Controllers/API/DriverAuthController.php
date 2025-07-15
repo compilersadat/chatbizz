@@ -88,7 +88,7 @@ class DriverAuthController extends Controller
         ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
         ->get();
 
-        $upcomingServiceRequest = ServiceRequest::whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pickup_lng AS DECIMAL(10,6)), CAST(pickup_lat AS DECIMAL(10,6))))", [$zone])
+        $upcomingServiceRequest = ServiceRequest::whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pickup_long AS DECIMAL(10,6)), CAST(pickup_lat AS DECIMAL(10,6))))", [$zone])
         ->get();
 
 
