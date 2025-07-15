@@ -59,7 +59,7 @@ class DriverAuthController extends Controller
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completedCount,
         COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledCount,
         SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as totalCommission
-    ")
+    ")->first();
 
             $zone = DB::table('zones')
             ->where('id', $driver->dzone)
