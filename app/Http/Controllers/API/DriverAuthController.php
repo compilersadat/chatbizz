@@ -55,7 +55,7 @@ class DriverAuthController extends Controller
         ->first();
         $serviceCounts = ServiceRequest::where('delivery_partner_id', $driver->id)
         ->selectRaw("
-        COUNT(CASE WHEN status = 'assigned' THEN 1 END) as pendingCount,
+        COUNT(CASE WHEN status = 'accepted' THEN 1 END) as pendingCount,
         COUNT(CASE WHEN status = 'completed' THEN 1 END) as completedCount,
         COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledCount,
         SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as totalCommission
