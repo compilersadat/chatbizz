@@ -46,6 +46,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [OrderController::class, 'createWithRazorpayOrder']);
     Route::post('/orders/verify-payment', [OrderController::class, 'verifyPayment']);
     Route::get('/orders', [OrderController::class, 'userOrders']);
+
+    Route::get('/service-requests', [OrderController::class, 'userServiceRequests']);
+
      // Get all addresses for the authenticated user
      Route::get('addresses', [AddressController::class, 'index']);
     

@@ -27,5 +27,9 @@ class Order extends Model
     {
         return $this->belongsTo(Merchant::class, 'shop_id');
     }
+    public function deliveryPartner()
+    {
+        return $this->belongsTo(Rider::class, 'delivery_partner_id');
+    }
 
 }

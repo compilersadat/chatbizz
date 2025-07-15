@@ -35,4 +35,11 @@ class ServiceRequest extends Model
     {
         return $this->belongsTo(Merchant::class);
     }
+     /**
+     * The assigned delivery partner (Rider).
+     */
+    public function deliveryPartner()
+    {
+        return $this->belongsTo(Rider::class, 'delivery_partner_id');
+    }
 }

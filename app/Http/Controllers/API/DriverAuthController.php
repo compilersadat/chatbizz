@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Zone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Models\ServiceRequest;
 
 class DriverAuthController extends Controller
 {
@@ -86,6 +87,11 @@ class DriverAuthController extends Controller
         ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pick_lng AS DECIMAL(10,6)), CAST(pick_lat AS DECIMAL(10,6))))", [$zone])
         ->whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(drop_lng AS DECIMAL(10,6)), CAST(drop_lat AS DECIMAL(10,6))))", [$zone])
         ->get();
+
+        $upcomingServiceRequest = ServiceRequest::whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pickup_lng AS DECIMAL(10,6)), CAST(pickup_lat AS DECIMAL(10,6))))", [$zone])
+        ->get();
+
+
         
         
 
@@ -95,7 +101,8 @@ class DriverAuthController extends Controller
                 'completedCount' => $orderCounts->completedCount,
                 'cancelledCount' => $orderCounts->cancelledCount,
                 'upcomingOrders' => $upcomingOrders,
-                'totalEarning' => $orderCounts->totalCommission
+                'totalEarning' => $orderCounts->totalCommission,
+                'upcomingServiceRequest' => $upcomingServiceRequest
             ]
         ]);
     }

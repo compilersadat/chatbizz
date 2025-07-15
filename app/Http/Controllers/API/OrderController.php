@@ -246,6 +246,23 @@ class OrderController extends Controller
     ]);
 }
 
+public function userServiceRequests(Request $request)
+{
+    $perPage = $request->input('per_page', 10);
+
+    // Get only the service requests of the authenticated user
+    $query = ServiceRequest::with([
+        'deliveryPartner'
+    ])->where('user_id', $request->user()->id);
+
+    $requests = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+    return response()->json([
+        'success' => true,
+        'data' => $requests
+    ]);
+}
+
 public function createServiceWithRazorpayOrder(Request $request)
 {
     $request->validate([

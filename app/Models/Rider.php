@@ -51,6 +51,14 @@ class Rider extends Authenticatable
         return $this->belongsTo(Zone::class, 'dzone');
     }
 
+    /**
+     * Rider's assigned service requests.
+     */
+    public function serviceRequests()
+    {
+        return $this->hasMany(ServiceRequest::class, 'delivery_partner_id');
+    }
+
     // // Relationship with Vehicle
     // public function vehicle()
     // {
