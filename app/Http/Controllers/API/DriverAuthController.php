@@ -53,7 +53,13 @@ class DriverAuthController extends Controller
             SUM(CASE WHEN status = 'delivered' THEN delivery_charges ELSE 0 END) as totalCommission
         ")
         ->first();
-
+        $serviceCounts = ServiceRequest::where('delivery_partner_id', $driver->id)
+        ->selectRaw("
+        COUNT(CASE WHEN status = 'assigned' THEN 1 END) as pendingCount,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completedCount,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) as cancelledCount,
+        SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as totalCommission
+    ")
 
             $zone = DB::table('zones')
             ->where('id', $driver->dzone)
@@ -102,7 +108,11 @@ class DriverAuthController extends Controller
                 'cancelledCount' => $orderCounts->cancelledCount,
                 'upcomingOrders' => $upcomingOrders,
                 'totalEarning' => $orderCounts->totalCommission,
-                'upcomingServiceRequest' => $upcomingServiceRequest
+                'upcomingServiceRequest' => $upcomingServiceRequest,
+                'pendingServiceCount' => $serviceCounts->pendingCount,
+                'completedServiceCount' => $serviceCounts->completedCount,
+                'cancelledServiceCount' => $serviceCounts->cancelledCount,
+                'totalServiceEarning' => $orderCounts->totalCommission,
             ]
         ]);
     }
