@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/delvery-boy/orders', [DriverAuthController::class, 'driverOrders']);
     Route::get('/delvery-boy/updateStatus', [DriverAuthController::class, 'updateDriverProfileStatus']); 
     Route::post('/delvery-boy/accept-order', [DriverAuthController::class,'AssignDriver']);
+    Route::post('/delvery-boy/accept-service', [DriverAuthController::class,'AssignDriverToService']);
+
 
     // Cart routes
     Route::post('/cart', [CartController::class, 'addToCart']); // Add to cart
@@ -42,6 +44,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/order', [OrderController::class, 'createOrder']); // Create order from cart
     // Route::get('/orders', [OrderController::class, 'getUserOrders']); // Get user orders
     Route::post('/update-order-status', [OrderController::class, 'changeOrderStatus']);
+    Route::post('/update-service-status', [OrderController::class, 'changeServiceStatus']);
+
 
     Route::post('/orders', [OrderController::class, 'createWithRazorpayOrder']);
     Route::post('/orders/verify-payment', [OrderController::class, 'verifyPayment']);

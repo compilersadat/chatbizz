@@ -35,6 +35,16 @@ class OrderController extends Controller
         return response()->json(['message' => 'Order updated.']);
     } 
 
+    public function changeServiceStatus(Request $request)
+    {
+        $request->validate([
+            'service_id' => 'required|exists:service_requests,id',
+            'status'   => 'required|string'
+        ]);
+        ServiceRequest::where('id',$request->service_id)->update(['status' => $request->status]);
+        return response()->json(['message' => 'Order updated.']);
+    }
+
     public function createOrder(Request $request)
     {
         $user = $request->user();

@@ -151,6 +151,13 @@ public function AssignDriver(Request $request)
 
 }
 
+public function AssignDriverToService(Request $request)
+{
+    $driver = $request->user();
+    ServiceRequest::where('id',$request->service_id)->update(['delivery_partner_id' => $driver->id, 'status' => 'accepted']);
+    return response()->json(['message' => 'Order updated.']);
+}
+
 
 public function updateDriverProfileStatus(Request $request)
     {
