@@ -119,29 +119,44 @@ class DriverAuthController extends Controller
     }
 
     public function driverOrders(Request $request)
-{
-    // Get authenticated user
-    $driver = $request->user();
-
-    // Optionally: filter status, paginate, etc.
-    $orders = Order::with([
-        'orderItems.merchantProduct.product',
-        'shop' => function($q) {
-                $q->select('id','address', 'name');
-        },
-        'address' => function($q) {
-                $q->select('id','address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
+    {
+        $driver = $request->user();
+        $perPage = $request->input('per_page', 20);
+        $status = $request->input('status');
+    
+        $query = Order::with([
+            'orderItems.merchantProduct.product',
+            'shop' => function($q) {
+                $q->select('id', 'address', 'name');
+            },
+            'address' => function($q) {
+                $q->select('id', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country');
+            }
+        ])
+        ->where('delivery_partner_id', $driver->id);
+    
+        if ($status) {
+            $query->where('status', $status);
         }
-    ])->where('delivery_partner_id', $driver->id)
-      ->orderBy('created_at', 'desc')
-      ->paginate(20);
-
-    // Optionally transform if you want to clean up data
-    return response()->json([
-        'success' => true,
-        'data' => $orders,
-    ]);
-}
+    
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
+    
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'from' => $orders->firstItem(),
+                'to' => $orders->lastItem(),
+                'next_page_url' => $orders->nextPageUrl(),
+                'prev_page_url' => $orders->previousPageUrl(),
+                'data' => $orders->items(),
+            ],
+        ]);
+    }
+    
 
 public function AssignDriver(Request $request)
 {
