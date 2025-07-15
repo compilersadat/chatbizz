@@ -157,6 +157,38 @@ class DriverAuthController extends Controller
         ]);
     }
     
+    public function driverServices(Request $request)
+    {
+        $driver = $request->user();
+        $perPage = $request->input('per_page', 20);
+        $status = $request->input('status');
+    
+        $query = ServiceRequest::with([
+            'user'
+        ])
+        ->where('delivery_partner_id', $driver->id);
+    
+        if ($status) {
+            $query->where('status', $status);
+        }
+    
+        $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
+    
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'from' => $orders->firstItem(),
+                'to' => $orders->lastItem(),
+                'next_page_url' => $orders->nextPageUrl(),
+                'prev_page_url' => $orders->previousPageUrl(),
+                'data' => $orders->items(),
+            ],
+        ]);
+    }
 
 public function AssignDriver(Request $request)
 {

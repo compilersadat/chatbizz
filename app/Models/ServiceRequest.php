@@ -33,7 +33,7 @@ class ServiceRequest extends Model
 
     public function user()
     {
-        return $this->belongsTo(Merchant::class);
+        return $this->belongsTo(Merchant::class),'user_id';
     }
      /**
      * The assigned delivery partner (Rider).
