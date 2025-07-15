@@ -95,6 +95,7 @@ class DriverAuthController extends Controller
         ->get();
 
         $upcomingServiceRequest = ServiceRequest::whereRaw("ST_Contains(ST_GeomFromText(?), POINT(CAST(pickup_long AS DECIMAL(10,6)), CAST(pickup_lat AS DECIMAL(10,6))))", [$zone])
+        ->where('status', 'painding')
         ->get();
 
 
