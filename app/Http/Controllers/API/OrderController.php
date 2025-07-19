@@ -359,10 +359,14 @@ public function verifyServicePayment(Request $request)
 }
 
 public function charges(){
+    $shop = Merchant::where('id', $request->input('shop_id'))->first();
+
     return response()->json([
         'success' => true,
         'delivery_charges' => env('PER_KM_CHARGES'),
         'platform_fee' => env('PLATE_FORM_FEE'),
+        'shop_lat' => $shop->lat,
+        'shop_long' => $shop->lang
     ]);
 }
 
