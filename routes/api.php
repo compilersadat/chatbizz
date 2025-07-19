@@ -90,4 +90,5 @@ Route::get('/merchant/{merchantId}/products', [ProductController::class, 'getPro
 Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
+Route::get('/getCharges',[OrderController::class, 'charges']);
 

@@ -358,5 +358,12 @@ public function verifyServicePayment(Request $request)
     }
 }
 
+public function charges(){
+    return response()->json([
+        'success' => true,
+        'delivery_charges' => env('PER_KM_CHARGES'),
+        'platform_fee' => env('PLATE_FORM_FEE'),
+    ]);
+}
 
 }
