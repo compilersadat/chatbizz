@@ -56,5 +56,9 @@ public function addresses()
     {
         return $this->hasMany(Address::class, 'merchant_id');
     }
+public function merchantAccount()
+{
+    return $this->hasOne(MerchantAccount::class,'user_id');
+}
 
 }
