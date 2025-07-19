@@ -11,7 +11,7 @@ class RazorpayXOnboardingService
 
     public function __construct()
     {
-        $this->api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
+        $this->api = new \Razorpay\Api\Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
     }
 
     public function onboard(MerchantAccount $account)
