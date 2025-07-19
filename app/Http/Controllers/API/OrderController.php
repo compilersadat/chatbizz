@@ -358,7 +358,7 @@ public function verifyServicePayment(Request $request)
     }
 }
 
-public function charges(){
+public function charges(Request $request){
     $shop = Merchant::where('id', $request->input('shop_id'))->first();
 
     return response()->json([
