@@ -30,11 +30,10 @@ class NotificationController extends Controller
     public function notifyUser(Request $request)
     {
         $request->validate([
-            'user_id' => 'required|exists:users,id',
             'title'   => 'required|string',
             'body'    => 'required|string',
         ]);
-        $user = User::find($request->user_id);
+        $user = $request->user();
         $token = optional($user->deviceToken)->device_token;
         if (!$token) {
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
