@@ -195,15 +195,7 @@ class OrderController extends Controller
             $order->save();
 
             DB::commit();
-            $deviceToken = optional($order->user->deviceToken)->device_token;
-            if ($deviceToken) {
-                FcmHelper::send(
-                    $deviceToken,
-                    'Order Placed!',
-                    "Your order #{$order->id} is placed successfully.",
-                    ['order_id' => $order->id, 'screen' => 'order_details']
-                );
-            }
+            
 
             return response()->json([
                 'order_id' => $order->id,
@@ -239,6 +231,15 @@ class OrderController extends Controller
             $order->status = 'paid';
             $order->payment_gateway_id = $request->razorpay_payment_id;
             $order->save();
+            $deviceToken = optional($order->user->deviceToken)->device_token;
+            if ($deviceToken) {
+                FcmHelper::send(
+                    $deviceToken,
+                    'Order Placed!',
+                    "Your order #{$order->id} is placed successfully.",
+                    ['order_id' => $order->id, 'screen' => 'order_details']
+                );
+            }
             return response()->json(['status' => 'success']);
         } else {
             $order->status = 'failed';
