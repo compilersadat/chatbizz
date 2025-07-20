@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\DeviceToken;
 use App\Models\User;
+use App\Helpers\FcmHelper; // <-- Add this
 
 class NotificationController extends Controller
 {
@@ -37,7 +38,7 @@ class NotificationController extends Controller
         if (!$token) {
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
         }
-        $this->sendFirebaseNotification($token, $request->title, $request->body, $request->data ?? []);
+        FcmHelper::send($token, $request->title, $request->body, $request->data ?? []);
         return response()->json(['success' => true, 'message' => 'Notification sent']);
     }
 
@@ -50,37 +51,8 @@ class NotificationController extends Controller
         ]);
         $tokens = DeviceToken::pluck('device_token')->toArray();
         foreach ($tokens as $token) {
-            $this->sendFirebaseNotification($token, $request->title, $request->body, $request->data ?? []);
+            FcmHelper::send($token, $request->title, $request->body, $request->data ?? []);
         }
         return response()->json(['success' => true, 'message' => 'Notifications sent to all users']);
-    }
-
-    // Helper for FCM sending
-    private function sendFirebaseNotification($deviceToken, $title, $body, $data = [])
-    {
-        $SERVER_API_KEY = env('FCM_SERVER_KEY');
-        $url = 'https://fcm.googleapis.com/fcm/send';
-        $fields = [
-            'to' => $deviceToken,
-            'notification' => [
-                'title' => $title,
-                'body' => $body,
-                'sound' => 'default'
-            ],
-            'data' => $data
-        ];
-        $headers = [
-            'Authorization: key=' . $SERVER_API_KEY,
-            'Content-Type: application/json'
-        ];
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
-        curl_exec($ch);
-        curl_close($ch);
     }
 }

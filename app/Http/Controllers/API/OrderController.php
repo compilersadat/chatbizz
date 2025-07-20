@@ -13,6 +13,8 @@ use App\Models\OrderItem;
 use Razorpay\Api\Api;
 use App\Models\Merchant;
 use App\Models\ServiceRequest;
+use App\Helpers\FcmHelper;
+
 
 class OrderController extends Controller
 {
@@ -193,6 +195,16 @@ class OrderController extends Controller
             $order->save();
 
             DB::commit();
+            $deviceToken = optional($order->user->deviceToken)->device_token;
+            if ($deviceToken) {
+                FcmHelper::send(
+                    $deviceToken,
+                    'Order Placed!',
+                    "Your order #{$order->id} is placed successfully.",
+                    ['order_id' => $order->id, 'screen' => 'order_details']
+                );
+            }
+
             return response()->json([
                 'order_id' => $order->id,
                 'razorpay_order_id' => $razorpayOrder['id'],
