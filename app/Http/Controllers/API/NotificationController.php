@@ -39,7 +39,7 @@ class NotificationController extends Controller
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
         }
         FcmHelper::send($token, $request->title, $request->body, $request->data ?? []);
-        return response()->json(['success' => true, 'message' => 'Notification sent']);
+        return response()->json(['success' => true, 'message' => 'Notification sent','token' => $token]);
     }
 
     // 3. Notify all users (broadcast)
