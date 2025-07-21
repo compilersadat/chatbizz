@@ -38,7 +38,6 @@ class NotificationController extends Controller
         $token = DeviceToken::where('user_id', $user->id)
         ->where('user_type', $request->user_type)
         ->first();   
-         return $token;
         if (!$token->device_token) {
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
         }
