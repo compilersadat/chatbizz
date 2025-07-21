@@ -231,7 +231,7 @@ class OrderController extends Controller
             $order->status = 'paid';
             $order->payment_gateway_id = $request->razorpay_payment_id;
             $order->save();
-            $token =  DeviceToken::where('user_id', $order->user->id)
+            $token =  DeviceToken::where('user_id', $order->user_id)
             ->where('user_type', 'customer')
             ->first();
             $deviceToken = $token->device_token;
