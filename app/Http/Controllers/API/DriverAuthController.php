@@ -131,9 +131,8 @@ class DriverAuthController extends Controller
              return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
          }
          DeviceToken::updateOrCreate(
-             ['user_id' => $user->id],
-             ['device_token' => $request->device_token],
-             ['user_type' => 'driver']
+             ['user_id' => $user->id , 'user_type' => 'driver'],
+             ['device_token' => $request->device_token]
          );
          return response()->json(['success' => true, 'message' => 'Token saved successfully']);
      }
