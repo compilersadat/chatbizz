@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/service-requests/create-with-razorpay', [OrderController::class, 'createServiceWithRazorpayOrder']);
      Route::post('/service-requests/verify-payment', [OrderController::class, 'verifyServicePayment']);
 
-     Route::post('save-device-token', [NotificationController::class, 'saveToken']);
+     Route::post('/delvery-boy/save-device-token', [NotificationController::class, 'saveToken']);
      Route::post('/notify-user',       [NotificationController::class, 'notifyUser']);
      Route::post('/notify-all',        [NotificationController::class, 'notifyAllUsers']);
  
