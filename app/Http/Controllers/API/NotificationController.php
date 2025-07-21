@@ -35,11 +35,11 @@ class NotificationController extends Controller
             'body'    => 'required|string',
         ]);
         $user = $request->user();
-        return $user;
         $token = DeviceToken::where('user_id', $user->id)
         ->where('user_type', $request->user_type)
-        ->first();    
-            if (!$token->device_token) {
+        ->first();   
+         
+        if (!$token->device_token) {
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
         }
         FcmHelper::send($token->device_token, $request->title, $request->body, $request->data ?? []);
