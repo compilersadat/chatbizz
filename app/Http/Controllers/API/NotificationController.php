@@ -35,6 +35,7 @@ class NotificationController extends Controller
             'body'    => 'required|string',
         ]);
         $user = $request->user();
+        return $user;
         $token = DeviceToken::where('user_id', $user->id)
         ->where('user_type', $request->user_type)
         ->first();    
