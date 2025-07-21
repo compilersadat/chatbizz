@@ -11,6 +11,8 @@ use App\Models\Zone;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\ServiceRequest;
+use App\Models\DeviceToken;
+
 
 class DriverAuthController extends Controller
 {
