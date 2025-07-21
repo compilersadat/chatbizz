@@ -21,7 +21,7 @@ class NotificationController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
         DeviceToken::updateOrCreate(
-            ['user_id' => $user->id],
+            ['user_id' => $user->id , 'user_type' => 'customer'],
             ['device_token' => $request->device_token]
         );
         return response()->json(['success' => true, 'message' => 'Token saved successfully']);
