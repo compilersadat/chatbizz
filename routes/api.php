@@ -35,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/delvery-boy/updateStatus', [DriverAuthController::class, 'updateDriverProfileStatus']); 
     Route::post('/delvery-boy/accept-order', [DriverAuthController::class,'AssignDriver']);
     Route::post('/delvery-boy/accept-service', [DriverAuthController::class,'AssignDriverToService']);
-    Route::post('save-driver-device-token', [DriverAuthController::class, 'saveToken']);
+    Route::post('/delvery-boy/save-driver-device-token', [DriverAuthController::class, 'saveToken']);
 
 
     // Cart routes
@@ -80,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/service-requests/create-with-razorpay', [OrderController::class, 'createServiceWithRazorpayOrder']);
      Route::post('/service-requests/verify-payment', [OrderController::class, 'verifyServicePayment']);
 
-     Route::post('/delvery-boy/save-device-token', [NotificationController::class, 'saveToken']);
+     Route::post('save-device-token', [NotificationController::class, 'saveToken']);
      Route::post('/notify-user',       [NotificationController::class, 'notifyUser']);
      Route::post('/notify-all',        [NotificationController::class, 'notifyAllUsers']);
  
