@@ -60,6 +60,16 @@ class MerchantResource extends Resource
                             0 => 'Inactive',
                         ])
                         ->required(),
+                        Forms\Components\Select::make('merchant_type')
+                        ->label('Merchant Type')
+                        ->options([
+                            'associative' => 'Associative',
+                            'default' => 'Default',
+                            'none' => 'None',
+                        ])
+                        ->required()
+                        ->default('none')
+                        ->native(false),
                     TextInput::make('lat')
                         ->label('Latitude')
                         ->reactive()
@@ -105,8 +115,19 @@ class MerchantResource extends Resource
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->label('Thumbnail')
                     ->circular(), 
+                    
                 Tables\Columns\TextColumn::make('address')
                     ->searchable(),
+
+                Tables\Columns\TextColumn::make('merchant_type')
+                    ->label('Merchant Type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'associative' => 'info',
+                        'default' => 'success',
+                        'none' => 'secondary',
+                    })
+                    ->sortable(),
                 
             ])
             ->filters([

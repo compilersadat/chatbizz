@@ -28,7 +28,8 @@ class Merchant extends Authenticatable
         'catagory_id',
         'lat',
         'lang',
-        'discount_price'
+        'discount_price',
+        'merchant_type'
     ];
 
     public function setMobileAttribute($value)

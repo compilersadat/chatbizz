@@ -118,6 +118,24 @@ class DriverAuthController extends Controller
         ]);
     }
 
+     // 1. Save or update FCM device token
+     public function saveToken(Request $request)
+     {
+         $request->validate([
+             'device_token' => 'required|string'
+         ]);
+         $user = $request->user(); // Requires auth middleware
+         if (!$user) {
+             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+         }
+         DeviceToken::updateOrCreate(
+             ['user_id' => $user->id],
+             ['device_token' => $request->device_token],
+             ['user_type' => 'driver']
+         );
+         return response()->json(['success' => true, 'message' => 'Token saved successfully']);
+     }
+
     public function driverOrders(Request $request)
     {
         $driver = $request->user();

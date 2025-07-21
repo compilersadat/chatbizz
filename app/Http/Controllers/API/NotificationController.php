@@ -7,6 +7,7 @@ use App\Models\DeviceToken;
 use App\Models\User;
 use App\Helpers\FcmHelper; // <-- Add this
 
+
 class NotificationController extends Controller
 {
     // 1. Save or update FCM device token
@@ -34,11 +35,13 @@ class NotificationController extends Controller
             'body'    => 'required|string',
         ]);
         $user = $request->user();
-        $token = optional($user->deviceToken)->device_token;
-        if (!$token) {
+        $token = DeviceToken::where('user_id', $user->id)
+        ->where('user_type', $request->user_type)
+        ->first();    
+            if (!$token->device_token) {
             return response()->json(['success' => false, 'message' => 'User token not found'], 404);
         }
-        FcmHelper::send($token, $request->title, $request->body, $request->data ?? []);
+        FcmHelper::send($token->device_token, $request->title, $request->body, $request->data ?? []);
         return response()->json(['success' => true, 'message' => 'Notification sent']);
     }
 
@@ -49,7 +52,7 @@ class NotificationController extends Controller
             'title' => 'required|string',
             'body'  => 'required|string',
         ]);
-        $tokens = DeviceToken::pluck('device_token')->toArray();
+        $tokens = DeviceToken::where('user_type', $request->user_type)->pluck('device_token')->toArray();
         foreach ($tokens as $token) {
             FcmHelper::send($token, $request->title, $request->body, $request->data ?? []);
         }

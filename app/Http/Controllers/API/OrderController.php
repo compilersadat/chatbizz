@@ -231,7 +231,10 @@ class OrderController extends Controller
             $order->status = 'paid';
             $order->payment_gateway_id = $request->razorpay_payment_id;
             $order->save();
-            $deviceToken = optional($order->user->deviceToken)->device_token;
+            $token =  DeviceToken::where('user_id', $order->user->id)
+            ->where('user_type', 'customer')
+            ->first();
+            $deviceToken = $token->device_token;
             if ($deviceToken) {
                 FcmHelper::send(
                     $deviceToken,
