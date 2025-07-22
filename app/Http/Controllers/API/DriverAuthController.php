@@ -145,7 +145,6 @@ class DriverAuthController extends Controller
         $status = $request->input('status');
     
         $query = Order::with([
-            'orderItems.merchantProduct.product',
             'shop' => function($q) {
                 $q->select('id', 'address', 'name');
             },
