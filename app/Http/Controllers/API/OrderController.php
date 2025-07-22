@@ -279,7 +279,8 @@ public function orderDetails(Request $request, $orderId)
     $order = Order::with([
             'orderItems.merchantProduct.product',
             'shop',
-            'address'
+            'address',
+            'deliveryPartner'
         ])
         ->where('id', $orderId)
         ->where('user_id', $user->id)
