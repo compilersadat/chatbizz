@@ -259,9 +259,7 @@ class OrderController extends Controller
 
     // Optionally: filter status, paginate, etc.
     $orders = Order::with([
-        'orderItems.merchantProduct.product',
         'shop',
-        'address'
     ])->where('user_id', $user->id)
       ->orderBy('created_at', 'desc')
       ->paginate(20);
@@ -272,6 +270,34 @@ class OrderController extends Controller
         'data' => $orders,
     ]);
 }
+
+public function orderDetails(Request $request, $orderId)
+{
+    $user = $request->user();
+
+    // Fetch order for this user (secure: ensures user can only access their orders)
+    $order = Order::with([
+            'orderItems.merchantProduct.product',
+            'shop',
+            'address'
+        ])
+        ->where('id', $orderId)
+        ->where('user_id', $user->id)
+        ->first();
+
+    if (!$order) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Order not found or access denied.',
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $order,
+    ]);
+}
+
 
 public function userServiceRequests(Request $request)
 {

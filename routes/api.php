@@ -37,6 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/delvery-boy/accept-service', [DriverAuthController::class,'AssignDriverToService']);
     Route::post('/delvery-boy/save-driver-device-token', [DriverAuthController::class, 'saveToken']);
 
+    Route::get('order/{orderId}', [OrderController::class, 'orderDetails']);
+
 
     // Cart routes
     Route::post('/cart', [CartController::class, 'addToCart']); // Add to cart
