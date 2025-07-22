@@ -176,6 +176,35 @@ class DriverAuthController extends Controller
             ],
         ]);
     }
+
+
+    public function orderDetails(Request $request, $orderId)
+{
+    $order = Order::with([
+        'orderItems.merchantProduct.product',
+        'shop' => function($q) {
+            $q->select('id', 'address', 'name', 'lat', 'lang');
+        },
+        'address' => function($q) {
+            $q->select('id', 'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country', 'latitude', 'longitude');
+        },
+        'deliveryPartner' => function($q) {
+            $q->select('id', 'title', 'mobile', 'email', 'status', 'rstatus', 'rate', 'rimg', 'adhar_id', 'full_address', 'pincode', 'landmark', 'dzone', 'bank_name', 'ifsc', 'receipt_name', 'acc_number', 'upi_id', 'created_at', 'updated_at');
+        }
+    ])
+    ->find($orderId);
+
+    if (!$order) {
+        return response()->json(['success' => false, 'message' => 'Order not found'], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $order,
+    ]);
+}
+
+
     
     public function driverServices(Request $request)
     {
