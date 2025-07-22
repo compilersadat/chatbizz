@@ -218,7 +218,7 @@ public function AssignDriver(Request $request)
         'delivery_partner_id' => $driver->id,
         'status' => 'assigned',
     ]);
-    $deviceToken = DeviceToken::where('user_id', $order->user_id)->value('device_token');
+    $deviceToken = DeviceToken::where('user_id', $order->user_id)->where('user_type','customer')->value('device_token');
     if ($deviceToken) {
         FcmHelper::send(
             $deviceToken,
@@ -243,11 +243,13 @@ public function AssignDriverToService(Request $request)
         'delivery_partner_id' => $driver->id,
          'status' => 'accepted'
         ]);
+    $deviceToken = DeviceToken::where('user_id', $service_request->user_id)->where('user_type','customer')->value('device_token');
+    
         if ($deviceToken) {
             FcmHelper::send(
                 $deviceToken,
                 'Driver Assigned!',
-                'A delivery partner has been assigned to your service #'.$order->id,
+                'A delivery partner has been assigned to your service #'.$service_request->id,
                 [
                     'service_id' => (string) $service_request->id,
                     'type' => 'request_driver_assigned',
