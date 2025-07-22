@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use App\Models\ServiceRequest;
 use App\Models\DeviceToken;
+use App\Helpers\FcmHelper;
 
 
 class DriverAuthController extends Controller
@@ -212,7 +213,24 @@ class DriverAuthController extends Controller
 public function AssignDriver(Request $request)
 {
     $driver = $request->user();
-    Order::where('id',$request->order_id)->update(['delivery_partner_id' => $driver->id, 'status' => 'assigned']);
+    $order = Order::find($request->order_id);
+    $order->update([
+        'delivery_partner_id' => $driver->id,
+        'status' => 'assigned',
+    ]);
+    $deviceToken = DeviceToken::where('user_id', $order->user_id)->value('device_token');
+    if ($deviceToken) {
+        FcmHelper::send(
+            $deviceToken,
+            'Driver Assigned!',
+            'A delivery partner has been assigned to your order #'.$order->id,
+            [
+                'order_id' => (string) $order->id,
+                'type' => 'order_driver_assigned',
+            ],
+        );
+    }
+
     return response()->json(['message' => 'Order updated.']);
 
 }
@@ -220,7 +238,22 @@ public function AssignDriver(Request $request)
 public function AssignDriverToService(Request $request)
 {
     $driver = $request->user();
-    ServiceRequest::where('id',$request->service_id)->update(['delivery_partner_id' => $driver->id, 'status' => 'accepted']);
+    $service_request = ServiceRequest::find($request->service_id);
+    $service_request->update([
+        'delivery_partner_id' => $driver->id,
+         'status' => 'accepted'
+        ]);
+        if ($deviceToken) {
+            FcmHelper::send(
+                $deviceToken,
+                'Driver Assigned!',
+                'A delivery partner has been assigned to your service #'.$order->id,
+                [
+                    'service_id' => (string) $service_request->id,
+                    'type' => 'request_driver_assigned',
+                ],
+            );
+        }
     return response()->json(['message' => 'Order updated.']);
 }
 
