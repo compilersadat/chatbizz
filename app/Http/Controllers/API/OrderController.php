@@ -29,14 +29,94 @@ class OrderController extends Controller
     }
     
     public function changeOrderStatus(Request $request)
-    {
-        $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'status'   => 'required|string'
-        ]);
-        Order::where('id',$request->order_id)->update(['status' => $request->status]);
-        return response()->json(['message' => 'Order updated.']);
-    } 
+{
+    $request->validate([
+        'order_id' => 'required|exists:orders,id',
+        'status'   => 'required|string'
+    ]);
+
+    $order = Order::with(['user', 'deliveryPartner'])->findOrFail($request->order_id);
+    $oldStatus = $order->status;
+    $newStatus = $request->status;
+
+    // Update status
+    $order->status = $newStatus;
+    $order->save();
+
+    // Notification texts
+    $userText = '';
+    $driverText = '';
+    $userTitle = "Order Update";
+    $driverTitle = "Order Update";
+
+    switch ($newStatus) {
+        case 'picked_up':
+            $userText   = "Your order has been picked up and is on its way!";
+            $driverText = "You have picked up the order. Please deliver it to the customer.";
+            break;
+        case 'in_transit':
+            $userText   = "Your order is in transit. Track your delivery in the app.";
+            $driverText = "Order is in transit. Keep moving!";
+            break;
+        case 'delivered':
+            $userText   = "Order delivered successfully! Enjoy your items.";
+            $driverText = "You have marked the order as delivered. Great job!";
+            break;
+        case 'rejected':
+            $userText   = "Sorry, your order was rejected. Please try again or contact support.";
+            $driverText = "You have rejected the order. The customer will be notified.";
+            break;
+        case 'failed':
+            $userText   = "Unfortunately, your order delivery failed. Please contact support.";
+            $driverText = "Order delivery failed. Please report the reason to admin.";
+            break;
+        case 'canceled':
+            $userText   = "Your order was canceled. Any paid amount will be refunded if applicable.";
+            $driverText = "The order has been canceled.";
+            break;
+        case 'refunded':
+            $userText   = "Your payment has been refunded. Please check your account.";
+            $driverText = "A refund has been issued for the order.";
+            break;
+        default:
+            $userText   = "Order status updated: $newStatus";
+            $driverText = "Order status updated: $newStatus";
+    }
+
+    // Send FCM to USER (customer)
+    $userToken = DeviceToken::where('user_id', $order->user_id)
+        ->where('user_type', 'customer')
+        ->value('device_token');
+
+    if ($userToken && $userText) {
+        // Assuming you have a helper like FcmHelper::send($token, $title, $body, $data)
+        FcmHelper::send(
+            $userToken,
+            $userTitle,
+            $userText,
+            ['order_id' => $order->id, 'status' => $newStatus]
+        );
+    }
+
+    // Send FCM to DELIVERY PARTNER
+    if ($order->delivery_partner_id) {
+        $driverToken = DeviceToken::where('user_id', $order->delivery_partner_id)
+            ->where('user_type', 'driver')
+            ->value('device_token');
+
+        if ($driverToken && $driverText) {
+            FcmHelper::send(
+                $driverToken,
+                $driverTitle,
+                $driverText,
+                ['order_id' => $order->id, 'status' => $newStatus]
+            );
+        }
+    }
+
+    return response()->json(['message' => 'Order updated & notifications sent.']);
+}
+
 
     public function changeServiceStatus(Request $request)
     {
