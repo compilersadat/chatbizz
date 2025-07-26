@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Chat;
 use App\Services\FirebaseService;
 use Illuminate\Http\Request;
+use Google\Cloud\Firestore\FieldValue;
+
 
 class ChatController extends Controller
 {
@@ -35,7 +37,7 @@ class ChatController extends Controller
             'receiver_id' => $request->receiver_id,
             'message' => $request->message,
             'sender_type' => $request->sender_type,
-            'created_at' => now()->toIso8601String(),
+            'created_at' => FieldValue::serverTimestamp()
         ];
 
         // Relay message to Firestore of the recipient
