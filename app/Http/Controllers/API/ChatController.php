@@ -42,9 +42,10 @@ class ChatController extends Controller
 
         // Relay message to Firestore of the recipient
         if ($request->sender_type == 'user') {
-            $this->firebase->sendMessageToUser($request->order_id, $data);
-        } else {
             $this->firebase->sendMessageToDelivery($request->order_id, $data);
+        } else {
+            $this->firebase->sendMessageToUser($request->order_id, $data);
+          
            
         }
 
