@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/delvery-boy/save-driver-device-token', [DriverAuthController::class, 'saveToken']);
     Route::get('/delvery-boy/order/{orderId}', [DriverAuthController::class, 'orderDetails']);
     Route::post('/delvery-boy/update-order-status', [OrderController::class, 'changeOrderStatus']);
+    Route::post('/delvery-boy/update-location', [DriverAuthController::class, 'updateLocation']);
 
 
     Route::get('order/{orderId}', [OrderController::class, 'orderDetails']);

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\ServiceRequest;
 use App\Models\DeviceToken;
 use App\Helpers\FcmHelper;
+use App\Services\FirebaseUserService;
 
 
 class DriverAuthController extends Controller
@@ -285,6 +286,37 @@ public function AssignDriverToService(Request $request)
             );
         }
     return response()->json(['message' => 'Order updated.']);
+}
+
+public function updateLocation(Request $request)
+{
+    $request->validate([
+        'order_id' => 'required',
+        'driver_id' => 'required',
+        'lat'      => 'required|numeric',
+        'lng'      => 'required|numeric',
+    ]);
+
+    // Save/update in User Firestore
+    try {
+        $firestore = FirebaseUserService::firestore();
+        $docRef = $firestore
+            ->database()
+            ->collection('orders')
+            ->document($request->order_id)
+            ->collection('tracking')
+            ->document('driver_location');
+        $docRef->set([
+            'driver_id' => $request->driver_id,
+            'lat' => (float) $request->lat,
+            'lng' => (float) $request->lng,
+            'updated_at' => now()->toIso8601String(),
+        ], ['merge' => true]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+
+    return response()->json(['success' => true]);
 }
 
 
