@@ -44,8 +44,8 @@ class ChatController extends Controller
             $this->firebase->sendMessageToDelivery($request->order_id, $data);
             $this->firebase->sendMessageToUser($request->order_id, $data);
           
-           
+            return response()->json(['success' => true, 'chat' => $chat]);
+
         }
 
-        return response()->json(['success' => true, 'chat' => $chat]);
     }
