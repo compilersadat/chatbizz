@@ -10,6 +10,7 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\NotificationController;
+use App\Http\Controllers\API\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +40,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/delvery-boy/order/{orderId}', [DriverAuthController::class, 'orderDetails']);
     Route::post('/delvery-boy/update-order-status', [OrderController::class, 'changeOrderStatus']);
     Route::post('/delvery-boy/update-location', [DriverAuthController::class, 'updateLocation']);
+
+    Route::post('/delvery-boy/delivery-chat-send', [ChatController::class, 'send']);
+
+    Route::post('delivery-chat-send', [ChatController::class, 'send']);
 
 
     Route::get('order/{orderId}', [OrderController::class, 'orderDetails']);

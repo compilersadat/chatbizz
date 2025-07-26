@@ -28,7 +28,7 @@ class FirebaseService
     {
         // Add to Firestore under a collection, e.g., "chats/{orderId}/messages"
         $this->userFirestore
-            ->collection('chats')
+            ->collection('delivery_chats')
             ->document((string)$orderId)
             ->collection('messages')
             ->add($data);
@@ -37,7 +37,7 @@ class FirebaseService
     public function sendMessageToDelivery($orderId, $data)
     {
         $this->deliveryFirestore
-            ->collection('chats')
+            ->collection('delivery_chats')
             ->document((string)$orderId)
             ->collection('messages')
             ->add($data);
