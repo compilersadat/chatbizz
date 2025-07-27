@@ -494,4 +494,32 @@ public function charges(Request $request){
     ]);
 }
 
+
+
+public function regenerateOtp(Request $request, $orderId)
+{
+    $order = Order::findOrFail($orderId);
+
+    // Optionally: Check if the order is in a state that allows OTP regeneration (e.g., not completed)
+    if ($order->status === 'delivered') {
+        return response()->json([
+            'success' => false,
+            'message' => 'Cannot regenerate OTP for completed order.'
+        ], 400);
+    }
+
+    // Generate a new 6-digit OTP
+    $otp = rand(100000, 999999);
+
+    // Save to the order
+    $order->completion_otp = $otp;
+    $order->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'OTP regenerated and sent to user.',
+        'otp' => app()->isLocal() ? $otp : null // Only send in response if in local env
+    ]);
+}
+
 }

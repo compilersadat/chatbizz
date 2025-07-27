@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/delvery-boy/order/{orderId}', [DriverAuthController::class, 'orderDetails']);
     Route::post('/delvery-boy/update-order-status', [OrderController::class, 'changeOrderStatus']);
     Route::post('/delvery-boy/update-location', [DriverAuthController::class, 'updateLocation']);
+    Route::post('/delvery-boy/orders/{order}/regenerate-otp', [OrderController::class, 'regenerateOtp']);
 
     Route::post('/delvery-boy/delivery-chat-send', [ChatController::class, 'send']);
 

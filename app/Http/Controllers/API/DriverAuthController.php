@@ -243,9 +243,11 @@ public function AssignDriver(Request $request)
 {
     $driver = $request->user();
     $order = Order::find($request->order_id);
+
     $order->update([
         'delivery_partner_id' => $driver->id,
         'status' => 'assigned',
+        'completion_otp' => rand(100000, 999999)
     ]);
     $deviceToken = DeviceToken::where('user_id', $order->user_id)->where('user_type','customer')->value('device_token');
     if ($deviceToken) {
