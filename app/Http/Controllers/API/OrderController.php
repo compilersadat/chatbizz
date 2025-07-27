@@ -32,13 +32,33 @@ class OrderController extends Controller
 {
     $request->validate([
         'order_id' => 'required|exists:orders,id',
-        'status'   => 'required|string'
+        'status'   => 'required|string',
+        'otp'      => $request->status === 'delivered' ? 'required|digits:6' : 'nullable'
     ]);
 
     $order = Order::with(['user', 'deliveryPartner'])->findOrFail($request->order_id);
     $oldStatus = $order->status;
     $newStatus = $request->status;
 
+    if ($newStatus === 'delivered') {
+        if (!$request->has('otp')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP is required for order completion.'
+            ], 422);
+        }
+    
+        if ($order->completion_otp !== $request->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP. Please check and try again.'
+            ], 422);
+        }
+    
+        // Invalidate OTP
+        $order->completion_otp = null;
+    }
+    
     // Update status
     $order->status = $newStatus;
     $order->save();
