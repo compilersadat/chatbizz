@@ -58,7 +58,7 @@ class OrderController extends Controller
         // Invalidate OTP
         $order->completion_otp = null;
     }
-    
+
     // Update status
     $order->status = $newStatus;
     $order->save();
@@ -114,7 +114,7 @@ class OrderController extends Controller
             $userToken,
             $userTitle,
             $userText,
-            ['order_id' => $order->id, 'status' => $newStatus]
+            ['order_id' => $order->id, 'status' => $newStatus, 'screen' => 'order_details']
         );
     }
 
@@ -129,7 +129,7 @@ class OrderController extends Controller
                 $driverToken,
                 $driverTitle,
                 $driverText,
-                ['order_id' => $order->id, 'status' => $newStatus]
+                ['order_id' => $order->id, 'status' => $newStatus, 'screen' => 'order_details']
             );
         }
     }
