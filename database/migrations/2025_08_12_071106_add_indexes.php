@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::table('merchant_products', function (Blueprint $table) {
             $table->index(['merchant_id', 'product_id']);
         });
-        Schema::table('merchants', fn (Blueprint $t) => $t->index('name'));
-        Schema::table('products', fn (Blueprint $t) => $t->index('name'));
         
     }
 
