@@ -125,6 +125,7 @@ class MerchantProductResource extends Resource
                     ->label('Product')
                     ->relationship('product', 'name'),
     
+                Tables\Filters\TrashedFilter::make(), // if model uses SoftDeletes
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
