@@ -22,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::table('merchant_products', function (Blueprint $table) {
+            $table->dropIndex('merchant_products_merchant_id_product_id_index');
+        });
     }
 };
