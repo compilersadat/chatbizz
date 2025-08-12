@@ -11,19 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('merchant_products', function (Blueprint $table) {
-            $table->index(['merchant_id', 'product_id']);
-        });
-        
+        $sm = Schema::getConnection()->getDoctrineSchemaManager();
+        $indexes = $sm->listTableIndexes('merchant_products');
+
+        if (!array_key_exists('merchant_products_merchant_id_product_id_index', $indexes)) {
+            Schema::table('merchant_products', function (Blueprint $table) {
+                $table->index(['merchant_id', 'product_id']);
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('merchant_products', function (Blueprint $table) {
-            $table->dropIndex('merchant_products_merchant_id_product_id_index');
-        });
+        $sm = Schema::getConnection()->getDoctrineSchemaManager();
+        $indexes = $sm->listTableIndexes('merchant_products');
+
+        if (array_key_exists('merchant_products_merchant_id_product_id_index', $indexes)) {
+            Schema::table('merchant_products', function (Blueprint $table) {
+                $table->dropIndex('merchant_products_merchant_id_product_id_index');
+            });
+        }
     }
 };
