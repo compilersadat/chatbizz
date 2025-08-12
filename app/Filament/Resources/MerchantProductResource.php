@@ -39,47 +39,47 @@ class MerchantProductResource extends Resource
 
             // Catalog-style product picker with category filters
             Forms\Components\Group::make()
-                ->columns(3)
-                ->schema([
-                    Forms\Components\Select::make('cat_id')
-                        ->label('Category')
-                        ->options(fn () => ProductCategory::query()->orderBy('title')->pluck('title', 'id'))
-                        ->reactive()
-                        ->afterStateUpdated(fn (Set $set) => $set('subcat_id', null)),
+    ->columns(3)
+    ->schema([
+        Forms\Components\Select::make('cat_id')
+            ->label('Category')
+            ->options(fn () => \App\Models\ProductCategory::query()->orderBy('title')->pluck('title', 'id'))
+            ->reactive()
+            ->afterStateUpdated(fn (Forms\Set $set) => $set('subcat_id', null)),
 
-                    Forms\Components\Select::make('subcat_id')
-                        ->label('Subcategory')
-                        ->options(function (Get $get) {
-                            $catId = $get('cat_id');
-                            if (!$catId) {
-                                return SubCategory::query()->orderBy('title')->pluck('title', 'id');
-                            }
-                            return SubCategory::query()->where('cat_id', $catId)->orderBy('title')->pluck('title', 'id');
-                        })
-                        ->reactive(),
+        Forms\Components\Select::make('subcat_id')
+            ->label('Subcategory')
+            ->options(function (Forms\Get $get) {
+                $catId = $get('cat_id');
+                $q = \App\Models\SubCategory::query()->orderBy('title');
+                if ($catId) $q->where('cat_id', $catId);
+                return $q->pluck('title', 'id');
+            })
+            ->reactive(),
 
-                    Forms\Components\Select::make('product_id')
-                        ->label('Product')
-                        ->required()
-                        ->searchable()
-                        ->preload()
-                        ->options(function (Get $get) {
-                            $q = Product::query()->orderBy('title');
-                            if ($get('cat_id')) {
-                                $q->where('cat_id', $get('cat_id'));
-                            }
-                            if ($get('subcat_id')) {
-                                $q->where('subcat_id', $get('subcat_id'));
-                            }
-                            return $q->pluck('title', 'id');
-                        })
-                        ->getOptionLabelFromRecordUsing(function (Product $record) {
-                            $cat = optional($record->productcategory)->title;
-                            $sub = optional($record->subcategory)->title;
-                            return "{$record->title}" . ($cat ? " — {$cat}" : '') . ($sub ? " / {$sub}" : '');
-                        })
-                        ->native(false),
-                ]),
+        Forms\Components\Select::make('product_id')
+            ->label('Product')
+            ->required()
+            ->searchable()
+            ->preload()
+            ->options(function (Forms\Get $get) {
+                $q = \App\Models\Product::query()
+                    ->with(['productcategory', 'subcategory'])
+                    ->orderBy('title');
+
+                if ($get('cat_id'))    $q->where('cat_id', $get('cat_id'));
+                if ($get('subcat_id')) $q->where('subcat_id', $get('subcat_id'));
+
+                return $q->get()->mapWithKeys(function ($product) {
+                    $cat = optional($product->productcategory)->title;
+                    $sub = optional($product->subcategory)->title;
+                    $label = $product->title . ($cat ? " — {$cat}" : '') . ($sub ? " / {$sub}" : '');
+                    return [$product->id => $label];
+                })->toArray();
+            })
+            ->native(false),
+    ]),
+
 
             Forms\Components\TextInput::make('price')
                 ->numeric()->step('0.01')->required(),
@@ -180,8 +180,7 @@ class MerchantProductResource extends Resource
                             ->required()
                             ->options(fn () => Merchant::orderBy('name')->pluck('name', 'id'))
                             ->native(false),
-
-                        Forms\Components\Repeater::make('items')
+                            Forms\Components\Repeater::make('items')
                             ->label('Select Products')
                             ->reorderable() // drag & drop
                             ->defaultItems(1)
@@ -189,65 +188,69 @@ class MerchantProductResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('cat_id')
                                     ->label('Category')
-                                    ->options(fn () => ProductCategory::orderBy('title')->pluck('title', 'id'))
+                                    ->options(fn () => \App\Models\ProductCategory::orderBy('title')->pluck('title', 'id'))
                                     ->reactive()
-                                    ->afterStateUpdated(function (Set $set) {
+                                    ->afterStateUpdated(function (Forms\Set $set) {
                                         $set('subcat_id', null);
                                         $set('product_id', null);
                                     })
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\Select::make('subcat_id')
                                     ->label('Subcategory')
-                                    ->options(function (Get $get) {
-                                        $catId = $get('items.*.cat_id') ?? $get('cat_id');
-                                        $catId = is_array($catId) ? null : $catId;
-                                        $q = SubCategory::query();
+                                    ->options(function (Forms\Get $get) {
+                                        $catId = $get('cat_id');
+                                        $q = \App\Models\SubCategory::query()->orderBy('title');
                                         if ($catId) $q->where('cat_id', $catId);
-                                        return $q->orderBy('title')->pluck('title', 'id');
+                                        return $q->pluck('title', 'id');
                                     })
                                     ->reactive()
-                                    ->afterStateUpdated(fn (Set $set) => $set('product_id', null))
+                                    ->afterStateUpdated(fn (Forms\Set $set) => $set('product_id', null))
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\Select::make('product_id')
                                     ->label('Product')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->options(function (Get $get) {
+                                    ->options(function (Forms\Get $get) {
                                         $catId = $get('cat_id');
                                         $subId = $get('subcat_id');
-                                        $q = Product::query()->orderBy('title');
+                                        $q = \App\Models\Product::query()
+                                            ->with(['productcategory', 'subcategory'])
+                                            ->orderBy('title');
+                        
                                         if ($catId) $q->where('cat_id', $catId);
                                         if ($subId) $q->where('subcat_id', $subId);
-                                        return $q->pluck('title', 'id');
-                                    })
-                                    ->getOptionLabelFromRecordUsing(function (Product $record) {
-                                        $cat = optional($record->productcategory)->title;
-                                        $sub = optional($record->subcategory)->title;
-                                        return "{$record->title}" . ($cat ? " — {$cat}" : '') . ($sub ? " / {$sub}" : '');
+                        
+                                        return $q->get()->mapWithKeys(function ($product) {
+                                            $cat = optional($product->productcategory)->title;
+                                            $sub = optional($product->subcategory)->title;
+                                            $label = $product->title . ($cat ? " — {$cat}" : '') . ($sub ? " / {$sub}" : '');
+                                            return [$product->id => $label];
+                                        })->toArray();
                                     })
                                     ->native(false)
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\TextInput::make('price')
                                     ->numeric()->step('0.01')->required()
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\TextInput::make('discount')
                                     ->numeric()->step('0.01')->default(0)
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\TextInput::make('stock')
                                     ->numeric()->minValue(0)->default(0)
                                     ->columnSpan(2),
-
+                        
                                 Forms\Components\Textarea::make('description')
                                     ->rows(2)->maxLength(500)
                                     ->columnSpan(6),
                             ])
                             ->addActionLabel('Add another product'),
+                        
                     ])
                     ->action(function (array $data) {
                         /** @var int $merchantId */
