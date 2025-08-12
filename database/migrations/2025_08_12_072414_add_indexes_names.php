@@ -1,76 +1,95 @@
 <?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        $sm = Schema::getConnection()->getDoctrineSchemaManager();
-
-        // Merchants.name
+        // --- Merchants.name ---
         if (Schema::hasColumn('merchants', 'name')) {
-            $column = $sm->listTableColumns('merchants')['name'];
-            if (strtolower($column->getType()->getName()) !== 'string' || $column->getLength() !== 191) {
-                Schema::table('merchants', function (Blueprint $table) {
-                    $table->string('name', 191)->change();
-                });
+            $col = DB::table('information_schema.COLUMNS')
+                ->select('DATA_TYPE', 'CHARACTER_MAXIMUM_LENGTH')
+                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+                ->where('TABLE_NAME', 'merchants')
+                ->where('COLUMN_NAME', 'name')
+                ->first();
+
+            // Change to VARCHAR(191) only if not already varchar(191)
+            if (!$col || strtolower($col->DATA_TYPE) !== 'varchar' || (int) $col->CHARACTER_MAXIMUM_LENGTH !== 191) {
+                DB::statement('ALTER TABLE `merchants` MODIFY `name` VARCHAR(191)');
             }
 
-            $indexes = $sm->listTableIndexes('merchants');
-            if (!array_key_exists('merchants_name_index', $indexes)) {
-                Schema::table('merchants', function (Blueprint $table) {
-                    $table->index('name');
-                });
+            // Add index on name if not exists
+            $hasIndex = DB::table('information_schema.STATISTICS')
+                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+                ->where('TABLE_NAME', 'merchants')
+                ->where('COLUMN_NAME', 'name')
+                ->exists();
+
+            if (!$hasIndex) {
+                DB::statement('CREATE INDEX `merchants_name_index` ON `merchants` (`name`)');
             }
         }
 
-        // Order_products.name
+        // --- Order_products.name ---
         if (Schema::hasColumn('order_products', 'name')) {
-            $column = $sm->listTableColumns('order_products')['name'];
-            if (strtolower($column->getType()->getName()) !== 'string' || $column->getLength() !== 191) {
-                Schema::table('order_products', function (Blueprint $table) {
-                    $table->string('name', 191)->change();
-                });
+            $col = DB::table('information_schema.COLUMNS')
+                ->select('DATA_TYPE', 'CHARACTER_MAXIMUM_LENGTH')
+                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+                ->where('TABLE_NAME', 'order_products')
+                ->where('COLUMN_NAME', 'name')
+                ->first();
+
+            if (!$col || strtolower($col->DATA_TYPE) !== 'varchar' || (int) $col->CHARACTER_MAXIMUM_LENGTH !== 191) {
+                DB::statement('ALTER TABLE `order_products` MODIFY `name` VARCHAR(191)');
             }
 
-            $indexes = $sm->listTableIndexes('order_products');
-            if (!array_key_exists('order_products_name_index', $indexes)) {
-                Schema::table('order_products', function (Blueprint $table) {
-                    $table->index('name');
-                });
+            $hasIndex = DB::table('information_schema.STATISTICS')
+                ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+                ->where('TABLE_NAME', 'order_products')
+                ->where('COLUMN_NAME', 'name')
+                ->exists();
+
+            if (!$hasIndex) {
+                DB::statement('CREATE INDEX `order_products_name_index` ON `order_products` (`name`)');
             }
         }
     }
 
     public function down(): void
     {
-        $sm = Schema::getConnection()->getDoctrineSchemaManager();
+        // Drop indexes only if they exist
 
-        // Merchants.name
-        $indexes = $sm->listTableIndexes('merchants');
-        if (array_key_exists('merchants_name_index', $indexes)) {
-            Schema::table('merchants', function (Blueprint $table) {
-                $table->dropIndex('merchants_name_index');
-            });
-        }
-        // Optional: revert to TEXT
-        Schema::table('merchants', function (Blueprint $table) {
-            $table->text('name')->change();
-        });
+        $merchantsIndexExists = DB::table('information_schema.STATISTICS')
+            ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+            ->where('TABLE_NAME', 'merchants')
+            ->where('INDEX_NAME', 'merchants_name_index')
+            ->exists();
 
-        // Order_products.name
-        $indexes = $sm->listTableIndexes('order_products');
-        if (array_key_exists('order_products_name_index', $indexes)) {
-            Schema::table('order_products', function (Blueprint $table) {
-                $table->dropIndex('order_products_name_index');
-            });
+        if ($merchantsIndexExists) {
+            DB::statement('DROP INDEX `merchants_name_index` ON `merchants`');
         }
-        // Optional: revert to TEXT
-        Schema::table('order_products', function (Blueprint $table) {
-            $table->text('name')->change();
-        });
+
+        $orderProductsIndexExists = DB::table('information_schema.STATISTICS')
+            ->where('TABLE_SCHEMA', DB::raw('DATABASE()'))
+            ->where('TABLE_NAME', 'order_products')
+            ->where('INDEX_NAME', 'order_products_name_index')
+            ->exists();
+
+        if ($orderProductsIndexExists) {
+            DB::statement('DROP INDEX `order_products_name_index` ON `order_products`');
+        }
+
+        // Optional: revert column types back to TEXT (skip if you don't want this)
+        if (Schema::hasColumn('merchants', 'name')) {
+            DB::statement('ALTER TABLE `merchants` MODIFY `name` TEXT');
+        }
+        if (Schema::hasColumn('order_products', 'name')) {
+            DB::statement('ALTER TABLE `order_products` MODIFY `name` TEXT');
+        }
     }
 };
