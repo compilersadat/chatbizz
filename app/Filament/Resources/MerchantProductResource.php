@@ -79,7 +79,7 @@ class MerchantProductResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $q) =>
                 $q->with(['merchant:id,name', 'product:id,name'])
-                  ->select(['id','merchant_id','product_id','price','discount','stock','updated_at'])
+                  ->select(['id','merchant_id','product_id','price','discount','stock','updated_at','deleted_at'])
             )
             ->columns([
                 Tables\Columns\TextColumn::make('merchant.name')
