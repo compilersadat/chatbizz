@@ -104,15 +104,7 @@ class MerchantProductResource extends Resource
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->searchDebounce('600ms')
-            ->filters([
-                Tables\Filters\TernaryFilter::make('in_stock')->label('In stock')->queries(
-                    true: fn (Builder $q) => $q->where('stock', '>', 0),
-                    false: fn (Builder $q) => $q->where('stock', '=', 0),
-                    blank: fn (Builder $q) => $q
-                ),
-                Tables\Filters\SelectFilter::make('merchant_id')->label('Merchant')->relationship('merchant', 'name'),
-                Tables\Filters\SelectFilter::make('product_id')->label('Product')->relationship('product', 'name'),
-                Tables\Filters\TrashedFilter::make(), // works with SoftDeletes; default view still excludes trashed
+            ->filters([// works with SoftDeletes; default view still excludes trashed
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
