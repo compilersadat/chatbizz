@@ -77,25 +77,29 @@ class MerchantProductResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $q) =>
+                $q->with(['merchant:id,name', 'product:id,name'])
+                  ->select(['id','merchant_id','product_id','price','discount','stock','updated_at'])
+            )
             ->columns([
                 Tables\Columns\TextColumn::make('merchant.name')
                     ->label('Merchant')->sortable()->searchable(),
-
+    
                 Tables\Columns\TextColumn::make('product.name')
                     ->label('Product')->sortable()->searchable(),
-
+    
                 Tables\Columns\TextColumn::make('price')
                     ->label('Original')->money('INR', true)->sortable(),
-
+    
                 Tables\Columns\TextColumn::make('discount')
                     ->label('Discounted')->money('INR', true)->toggleable()->sortable(),
-
+    
                 Tables\Columns\TextColumn::make('final_price')
                     ->label('Final')->money('INR', true)
                     ->sortable(fn (Builder $q, string $dir) => $q->orderBy('price', $dir)),
-
+    
                 Tables\Columns\TextColumn::make('stock')->sortable(),
-
+    
                 Tables\Columns\TextColumn::make('updated_at')
                     ->since()->dateTimeTooltip()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -104,7 +108,24 @@ class MerchantProductResource extends Resource
             ->paginationPageOptions([25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->searchDebounce('600ms')
-            ->filters([// works with SoftDeletes; default view still excludes trashed
+            ->filters([
+                Tables\Filters\TernaryFilter::make('in_stock')
+                    ->label('In stock')
+                    ->queries(
+                        true: fn (Builder $q) => $q->where('stock', '>', 0),
+                        false: fn (Builder $q) => $q->where('stock', '=', 0),
+                        blank: fn (Builder $q) => $q
+                    ),
+    
+                Tables\Filters\SelectFilter::make('merchant_id')
+                    ->label('Merchant')
+                    ->relationship('merchant', 'name'),
+    
+                Tables\Filters\SelectFilter::make('product_id')
+                    ->label('Product')
+                    ->relationship('product', 'name'),
+    
+                Tables\Filters\TrashedFilter::make(), // if model uses SoftDeletes
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -120,6 +141,7 @@ class MerchantProductResource extends Resource
                 ]),
             ]);
     }
+    
 
     public static function getEloquentQuery(): Builder
     {
