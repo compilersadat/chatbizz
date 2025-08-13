@@ -20,10 +20,6 @@ class MerchantProductResource extends Resource
     protected static ?string $modelLabel = 'Merchant Product';
     protected static ?string $pluralModelLabel = 'Merchant Products';
 
-    public static function getNavigationUrl(): string
-    {
-        return static::getUrl('create');
-    }
 
     public static function form(Form $form): Form
     {
@@ -126,13 +122,6 @@ class MerchantProductResource extends Resource
 
     
 
-    public static function getEloquentQuery(): Builder
-    {
-        // Eager-load only what the table needs, and select lean columns
-        return parent::getEloquentQuery()
-            ->with(['merchant:id,name', 'product:id,name'])
-            ->select(['id','merchant_id','product_id','price','discount','stock','updated_at']);
-    }
 
     public static function getPages(): array
     {
@@ -141,11 +130,5 @@ class MerchantProductResource extends Resource
             'create' => Pages\CreateMerchantProduct::route('/create'),
             'edit'   => Pages\EditMerchantProduct::route('/{record}/edit'),
         ];
-    }
-
-    public static function getGloballySearchableAttributes(): array
-    {
-        // Keep global search light; avoid large TEXT columns like description
-        return ['merchant.name', 'product.name'];
     }
 }
