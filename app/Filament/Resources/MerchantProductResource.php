@@ -29,7 +29,7 @@ class MerchantProductResource extends Resource
                     ->label('Merchant')
                     ->searchable()
                     ->getSearchResultsUsing(function (string $search) {
-                        return Merchant::query()
+                        return Merchant::where('associative')->query()
                             ->where('name', 'like', "%{$search}%")
                             ->orderBy('name')
                             ->limit(50)
