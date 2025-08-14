@@ -46,6 +46,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('delivery-chat-send', [ChatController::class, 'send']);
 
+    Route::post('/delvery-boy/service-chat-send', [ChatController::class, 'sendService']);
+
+    Route::post('service-chat-send', [ChatController::class, 'sendService']);
+
 
     Route::get('order/{orderId}', [OrderController::class, 'orderDetails']);
 

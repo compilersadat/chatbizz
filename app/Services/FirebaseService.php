@@ -42,4 +42,23 @@ class FirebaseService
             ->collection('messages')
             ->add($data);
     }
+
+    public function sendServiceMessageToUser($orderId, $data)
+    {
+        // Add to Firestore under a collection, e.g., "chats/{orderId}/messages"
+        $this->userFirestore
+            ->collection('service_chats')
+            ->document((string)$orderId)
+            ->collection('messages')
+            ->add($data);
+    }
+
+    public function sendServiceMessageToDelivery($orderId, $data)
+    {
+        $this->deliveryFirestore
+            ->collection('service_chats')
+            ->document((string)$orderId)
+            ->collection('messages')
+            ->add($data);
+    }
 }

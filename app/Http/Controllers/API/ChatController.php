@@ -48,4 +48,34 @@ class ChatController extends Controller
 
         }
 
+        public function sendService(Request $request)
+        {
+            $request->validate([
+                'service_id' => 'required|integer',
+                'sender_id' => 'required|integer',
+                'receiver_id' => 'required|integer',
+                'message' => 'required|string',
+                'sender_type' => 'required|in:user,delivery',
+            ]);
+    
+            $chat = Chat::create($request->all());
+    
+            // Prepare data for Firestore
+            $data = [
+                'service_id' => $request->order_id,
+                'sender_id' => $request->sender_id,
+                'receiver_id' => $request->receiver_id,
+                'message' => $request->message,
+                'sender_type' => $request->sender_type,
+                'created_at' => FieldValue::serverTimestamp()
+            ];
+    
+            // Relay message to Firestore of the recipient
+                $this->firebase->sendMessageToDelivery($request->order_id, $data);
+                $this->firebase->sendMessageToUser($request->order_id, $data);
+              
+                return response()->json(['success' => true, 'chat' => $chat]);
+    
+            }
+
     }
