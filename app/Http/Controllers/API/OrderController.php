@@ -138,15 +138,115 @@ class OrderController extends Controller
 }
 
 
-    public function changeServiceStatus(Request $request)
-    {
-        $request->validate([
-            'service_id' => 'required|exists:service_requests,id',
-            'status'   => 'required|string'
-        ]);
-        ServiceRequest::where('id',$request->service_id)->update(['status' => $request->status]);
-        return response()->json(['message' => 'Order updated.']);
+public function changeServiceStatus(Request $request)
+{
+    $request->validate([
+        'service_id' => 'required|exists:service_requests,id',
+        'status'     => 'required|string',
+        'otp'        => $request->status === 'completed' ? 'required|digits:6' : 'nullable',
+    ]);
+
+    $service   = ServiceRequest::with(['user', 'deliveryPartner'])->findOrFail($request->service_id);
+    $oldStatus = $service->status;
+    $newStatus = $request->status;
+
+    // Require + validate OTP for completion
+    if ($newStatus === 'completed') {
+        if (!$request->has('otp')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OTP is required to complete this service.',
+            ], 422);
+        }
+
+        if ($service->completion_otp !== $request->otp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid OTP. Please check and try again.',
+            ], 422);
+        }
+
+        // Invalidate OTP after successful verification
+        $service->completion_otp = null;
     }
+
+    // Update status
+    $service->status = $newStatus;
+    $service->save();
+
+    // Notification templates
+    $userTitle   = 'Service Update';
+    $providerTitle = 'Service Update';
+    $userText    = '';
+    $providerText = '';
+
+    switch ($newStatus) {
+        case 'inprocess':
+            $userText     = 'Your service request is in process.';
+            $providerText = 'You have started the service request. Keep the client updated.';
+            break;
+
+        case 'completed':
+            $userText     = 'Your service has been completed successfully. Thank you!';
+            $providerText = 'You have marked the service as completed. Great job!';
+            break;
+
+        case 'cancelled':
+            $userText     = 'Your service request has been cancelled.';
+            $providerText = 'The service request has been cancelled.';
+            break;
+
+        default:
+            $userText     = "Service status updated: {$newStatus}";
+            $providerText = "Service status updated: {$newStatus}";
+            break;
+    }
+
+    // Send FCM to USER (customer)
+    $userToken = DeviceToken::where('user_id', $service->user_id)
+        ->where('user_type', 'customer')
+        ->value('device_token');
+
+    if ($userToken && $userText) {
+        FcmHelper::send(
+            $userToken,
+            $userTitle,
+            $userText,
+            [
+                'service_id' => $service->id,
+                'status'     => $newStatus,
+                'screen'     => 'service_details',
+            ]
+        );
+    }
+
+    // Send FCM to PROVIDER
+    if ($service->provider_id) {
+        $providerToken = DeviceToken::where('user_id', $service->provider_id)
+            ->where('user_type', 'driver')
+            ->value('device_token');
+
+        if ($providerToken && $providerText) {
+            FcmHelper::send(
+                $providerToken,
+                $providerTitle,
+                $providerText,
+                [
+                    'service_id' => $service->id,
+                    'status'     => $newStatus,
+                    'screen'     => 'service_details',
+                ]
+            );
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Service updated & notifications sent.',
+        'old_status' => $oldStatus,
+        'new_status' => $newStatus,
+    ]);
+}
 
     public function createOrder(Request $request)
     {

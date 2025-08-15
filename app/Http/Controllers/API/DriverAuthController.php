@@ -272,7 +272,8 @@ public function AssignDriverToService(Request $request)
     $service_request = ServiceRequest::find($request->service_id);
     $service_request->update([
         'delivery_partner_id' => $driver->id,
-         'status' => 'accepted'
+         'status' => 'accepted',
+         'completion_otp' => rand(100000, 999999)
         ]);
     $deviceToken = DeviceToken::where('user_id', $service_request->user_id)->where('user_type','customer')->value('device_token');
     
