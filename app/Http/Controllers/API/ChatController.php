@@ -62,7 +62,7 @@ class ChatController extends Controller
     
             // Prepare data for Firestore
             $data = [
-                'service_id' => $request->order_id,
+                'service_id' => $request->service_id,
                 'sender_id' => $request->sender_id,
                 'receiver_id' => $request->receiver_id,
                 'message' => $request->message,
