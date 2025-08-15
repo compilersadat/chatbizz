@@ -58,7 +58,7 @@ class ChatController extends Controller
                 'sender_type' => 'required|in:user,delivery',
             ]);
     
-            $chat = Chat::create($request->all());
+            // $chat = Chat::create($request->all());
     
             // Prepare data for Firestore
             $data = [
@@ -71,8 +71,8 @@ class ChatController extends Controller
             ];
     
             // Relay message to Firestore of the recipient
-                $this->firebase->sendMessageToDelivery($request->order_id, $data);
-                $this->firebase->sendMessageToUser($request->order_id, $data);
+                $this->firebase->sendServiceMessageToDelivery($request->service_id, $data);
+                $this->firebase->sendServiceMessageToUser($request->service_id, $data);
               
                 return response()->json(['success' => true, 'chat' => $chat]);
     
