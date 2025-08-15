@@ -23,7 +23,8 @@ class ServiceRequest extends Model
         'razorpay_signature',
         'amount',
         'payment_time',
-        'delivery_partner_id'
+        'delivery_partner_id',
+        'completion_otp'
     ];
 
     protected $casts = [
