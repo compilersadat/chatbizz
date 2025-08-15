@@ -188,7 +188,7 @@ class MerchantController extends Controller
         ]);
     }
     
-    public function getProfile()
+    public function getProfile(Request $request)
     {
         $merchant = $request->user(); // Assumes the merchant is authenticated
         return response()->json(['data' => $merchant]);
