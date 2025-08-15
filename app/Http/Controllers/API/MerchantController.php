@@ -188,5 +188,27 @@ class MerchantController extends Controller
         ]);
     }
     
+    public function getProfile()
+    {
+        $merchant = $request->user(); // Assumes the merchant is authenticated
+        return response()->json(['data' => $merchant]);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'mobile' => 'required|string|max:20',
+        ]);
+
+        $merchant = $request->user();
+
+        $merchant->update([
+            'name' => $request->name,
+            'mobile' => $request->mobile,
+        ]);
+
+        return response()->json(['message' => 'Profile updated successfully.', 'data' => $merchant]);
+    }
 
 }

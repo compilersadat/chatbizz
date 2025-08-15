@@ -102,6 +102,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/notify-user',       [NotificationController::class, 'notifyUser']);
      Route::post('/notify-all',        [NotificationController::class, 'notifyAllUsers']);
  
+     Route::get('/merchant/profile', [MerchantController::class, 'getProfile']);
+     Route::put('/merchant/profile', [MerchantController::class, 'updateProfile']);
 
 
 });
