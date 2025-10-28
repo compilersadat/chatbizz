@@ -83,7 +83,7 @@ class MerchantResource extends Resource
                     TextInput::make('razorpay_contact_id')
                         ->label('Razorpay Contact ID')
                         ->placeholder('cont_xxxxxxxxxxxxx')
-                        ->required()
+                        ->required(fn (string $operation): bool => $operation === 'create')
                         ->rule('regex:/^cont_[A-Za-z0-9]+$/')
                         ->unique(ignoreRecord: true)
                         ->maxLength(191),
@@ -91,7 +91,7 @@ class MerchantResource extends Resource
                     TextInput::make('razorpay_fund_account_id')
                         ->label('Razorpay Fund Account ID')
                         ->placeholder('fa_xxxxxxxxxxxxx')
-                        ->required()
+                        ->required(fn (string $operation): bool => $operation === 'create')
                         ->rule('regex:/^fa_[A-Za-z0-9]+$/')
                         ->unique(ignoreRecord: true)
                         ->maxLength(191),
@@ -164,7 +164,7 @@ class MerchantResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
