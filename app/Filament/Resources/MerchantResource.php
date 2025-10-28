@@ -29,84 +29,66 @@ class MerchantResource extends Resource
 
     
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema(function(){
-                $record = request()->route('record');
+{
+    return $form->schema([
+        Select::make('catagory_id')
+            ->relationship('merchantcategory', 'cat_name')
+            ->searchable()
+            ->preload(),
 
-                $merchant = $record ? Merchant::find($record) : null;
-                return [
-                    Select::make('catagory_id')
-                        ->relationship('merchantcategory','cat_name')
-                        ->searchable()
-                        ->preload(),
-                    Forms\Components\TextInput::make('name')
-                        ->required()
-                        ->maxLength(255),
-                    Forms\Components\TextInput::make('mobile')
-                        ->required()
-                        ->tel()
-                        ->maxLength(10),
-                    
-                    Forms\Components\TextInput::make('address')
-                        ->required()
-                        ->maxLength(255),
-                    Forms\Components\FileUpload::make('thumbnail')->label('Thumbnail')
-                        ->required(),
-                    Forms\Components\Select::make('status')
-                        ->label('Merchant Status')
-                        ->options([
-                            1 => 'Active',
-                            0 => 'Inactive',
-                        ])
-                        ->required(),
-                        Forms\Components\Select::make('merchant_type')
-                        ->label('Merchant Type')
-                        ->options([
-                            'associative' => 'Associative',
-                            'default' => 'Default',
-                            'none' => 'None',
-                        ])
-                        ->required()
-                        ->default('none')
-                        ->native(false),
-                    TextInput::make('lat')
-                        ->label('Latitude')
-                        ->reactive()
-                        ->required(),
-                    
-                    TextInput::make('lang')
-                        ->label('Longitude')
-                        ->reactive()
-                        ->required(),
-                    // app/Filament/Resources/MerchantResource.php (inside ->schema([...]))
-                    TextInput::make('razorpay_contact_id')
-                        ->label('Razorpay Contact ID')
-                        ->placeholder('cont_xxxxxxxxxxxxx')
-                        ->required(fn (string $operation): bool => $operation === 'create')
-                        ->rule('regex:/^cont_[A-Za-z0-9]+$/')
-                        ->unique(ignoreRecord: true)
-                        ->maxLength(191),
+        TextInput::make('name')->required()->maxLength(255),
 
-                    TextInput::make('razorpay_fund_account_id')
-                        ->label('Razorpay Fund Account ID')
-                        ->placeholder('fa_xxxxxxxxxxxxx')
-                        ->required(fn (string $operation): bool => $operation === 'create')
-                        ->rule('regex:/^fa_[A-Za-z0-9]+$/')
-                        ->unique(ignoreRecord: true)
-                        ->maxLength(191),
+        TextInput::make('mobile')->required()->tel()->maxLength(10),
 
-                    View::make('components.location-picker')
-                    ->columnSpanFull()
-                    ->viewData([
-                      'lat' => $merchant?->lat ?? 19.1545,
-                    'lang' => $merchant?->lang ?? 77.3210,
-                    ]),
-                    
-                        
-                ];
-            });
-    }
+        TextInput::make('address')->required()->maxLength(255),
+
+        Forms\Components\FileUpload::make('thumbnail')->label('Thumbnail')->required(),
+
+        Forms\Components\Select::make('status')
+            ->label('Merchant Status')
+            ->options([1 => 'Active', 0 => 'Inactive'])
+            ->required(),
+
+        Forms\Components\Select::make('merchant_type')
+            ->label('Merchant Type')
+            ->options([
+                'associative' => 'Associative',
+                'default'     => 'Default',
+                'none'        => 'None',
+            ])
+            ->required()
+            ->default('none')
+            ->native(false),
+
+        TextInput::make('lat')->label('Latitude')->reactive()->required(),
+        TextInput::make('lang')->label('Longitude')->reactive()->required(),
+
+        // Razorpay IDs (from step 1)
+        TextInput::make('razorpay_contact_id')
+            ->label('Razorpay Contact ID')
+            ->placeholder('cont_xxxxxxxxxxxxx')
+            ->required(fn (string $operation): bool => $operation === 'create')
+            ->rule('regex:/^cont_[A-Za-z0-9]+$/')
+            ->unique(ignoreRecord: true)
+            ->maxLength(191),
+
+        TextInput::make('razorpay_fund_account_id')
+            ->label('Razorpay Fund Account ID')
+            ->placeholder('fa_xxxxxxxxxxxxx')
+            ->required(fn (string $operation): bool => $operation === 'create')
+            ->rule('regex:/^fa_[A-Za-z0-9]+$/')
+            ->unique(ignoreRecord: true)
+            ->maxLength(191),
+
+        View::make('components.location-picker')
+            ->columnSpanFull()
+            ->viewData(fn (? \App\Models\Merchant $record) => [
+                'lat'  => $record?->lat  ?? 19.1545,
+                'lang' => $record?->lang ?? 77.3210,
+            ]),
+    ]);
+}
+
 
     public static function table(Table $table): Table
     {
