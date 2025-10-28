@@ -59,10 +59,7 @@ public function addresses()
     {
         return $this->hasMany(Address::class, 'merchant_id');
     }
-public function merchantAccount()
-{
-    return $this->hasOne(MerchantAccount::class,'user_id');
-}
+
 // app/Models/User.php
 public function deviceToken() {
     return $this->hasOne(DeviceToken::class,'user_id');
