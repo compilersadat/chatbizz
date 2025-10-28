@@ -29,7 +29,9 @@ class Merchant extends Authenticatable
         'lat',
         'lang',
         'discount_price',
-        'merchant_type'
+        'merchant_type',
+        'razorpay_contact_id',
+        'razorpay_fund_account_id'
     ];
 
     public function setMobileAttribute($value)

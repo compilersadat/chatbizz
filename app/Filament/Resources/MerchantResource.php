@@ -79,7 +79,23 @@ class MerchantResource extends Resource
                         ->label('Longitude')
                         ->reactive()
                         ->required(),
-                    
+                    // app/Filament/Resources/MerchantResource.php (inside ->schema([...]))
+                    TextInput::make('razorpay_contact_id')
+                        ->label('Razorpay Contact ID')
+                        ->placeholder('cont_xxxxxxxxxxxxx')
+                        ->required()
+                        ->rule('regex:/^cont_[A-Za-z0-9]+$/')
+                        ->unique(ignoreRecord: true)
+                        ->maxLength(191),
+
+                    TextInput::make('razorpay_fund_account_id')
+                        ->label('Razorpay Fund Account ID')
+                        ->placeholder('fa_xxxxxxxxxxxxx')
+                        ->required()
+                        ->rule('regex:/^fa_[A-Za-z0-9]+$/')
+                        ->unique(ignoreRecord: true)
+                        ->maxLength(191),
+
                     View::make('components.location-picker')
                     ->columnSpanFull()
                     ->viewData([
@@ -118,7 +134,17 @@ class MerchantResource extends Resource
                     
                 Tables\Columns\TextColumn::make('address')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('razorpay_contact_id')
+                    ->label('RZP Contact')
+                    ->toggleable()
+                    ->copyable()
+                    ->limit(18),
 
+                Tables\Columns\TextColumn::make('razorpay_fund_account_id')
+                    ->label('RZP Fund Acc')
+                    ->toggleable()
+                    ->copyable()
+                    ->limit(18),
                 Tables\Columns\TextColumn::make('merchant_type')
                     ->label('Merchant Type')
                     ->badge()
