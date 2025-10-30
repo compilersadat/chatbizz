@@ -116,17 +116,6 @@ class MerchantResource extends Resource
                     
                 Tables\Columns\TextColumn::make('address')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('razorpay_contact_id')
-                    ->label('RZP Contact')
-                    ->toggleable()
-                    ->copyable()
-                    ->limit(18),
-
-                Tables\Columns\TextColumn::make('razorpay_fund_account_id')
-                    ->label('RZP Fund Acc')
-                    ->toggleable()
-                    ->copyable()
-                    ->limit(18),
                 Tables\Columns\TextColumn::make('merchant_type')
                     ->label('Merchant Type')
                     ->badge()
