@@ -32,6 +32,9 @@ class Rider extends Authenticatable
         'receipt_name',
         'acc_number',
         'upi_id',
+        'razorpay_contact_id',
+        'razorpay_fund_account_id',
+
     ];
 
     /**
