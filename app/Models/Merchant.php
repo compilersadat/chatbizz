@@ -64,5 +64,8 @@ public function addresses()
 public function deviceToken() {
     return $this->hasOne(DeviceToken::class,'user_id');
 }
-
+public function scopeAssociative($query)
+{
+    return $query->where('is_associative', true); // adjust condition
+}
 }
