@@ -28,7 +28,7 @@ class MerchantProductResource extends Resource
                 Forms\Components\Select::make('merchant_id')
                     ->label('Merchant')
                     ->searchable()
-                    ->g->getSearchResultsUsing(function (string $search) {
+                    ->getSearchResultsUsing(function (string $search) {
                         return \App\Models\Merchant::associative()
                             ->when($search !== '', fn ($q) =>
                                 $q->where('name', 'like', "%{$search}%")
