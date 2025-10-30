@@ -178,16 +178,14 @@ class RiderResource extends Resource
                         ->placeholder('cont_XXXXXXXXXXXX')
                         ->maxLength(100)
                         ->rules(['nullable', 'regex:/^cont_[A-Za-z0-9]+$/'])
-                        ->helperText('Example: cont_abc123...')
-                        ->hiddenOn('create'),
+                        ->helperText('Example: cont_abc123...'),
 
                     Forms\Components\TextInput::make('razorpay_fund_account_id')
                         ->label('RZP Fund Account ID')
                         ->placeholder('fa_XXXXXXXXXXXX')
                         ->maxLength(100)
                         ->rules(['nullable', 'regex:/^fa_[A-Za-z0-9]+$/'])
-                        ->helperText('Example: fa_abc123...')
-                        ->hiddenOn('create'),
+                        ->helperText('Example: fa_abc123...'),
                 ])->columns(2),
 
 
