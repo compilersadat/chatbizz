@@ -66,6 +66,6 @@ public function deviceToken() {
 }
 public function scopeAssociative($query)
 {
-    return $query->where('is_associative', true); // adjust condition
+    return $query->where('merchant_type', 'associative'); // adjust condition
 }
 }
