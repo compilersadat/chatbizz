@@ -48,10 +48,10 @@ class MerchantProductResource extends Resource
                     ->searchable()
                     ->getSearchResultsUsing(function (string $search) {
                         return Product::query()
-                            ->where('name', 'like', "%{$search}%")
-                            ->orderBy('name')
+                            ->where('title', 'like', "%{$search}%")
+                            ->orderBy('title')
                             ->limit(50)
-                            ->pluck('name', 'id')
+                            ->pluck('title', 'id')
                             ->toArray();
                     })
                     ->getOptionLabelUsing(fn ($value) => optional(Product::find($value))->name)
