@@ -14,7 +14,7 @@
   <header class="header">
     <div class="container nav">
       <a href="{{ url('/') }}" class="brand" aria-label="ChatBizz home">
-        <span class="brand-logo" aria-hidden="true"></span>
+        <img class="brand-logo" src="{{public_path('img/taxifyLogo.jpeg')}}"/>
         <span>ChatBizz</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
