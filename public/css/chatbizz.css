@@ -29,7 +29,7 @@ a:hover{text-decoration:underline}
 .header{position:sticky;top:0;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border);z-index:10}
 .nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
 .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.1rem;color:var(--fg)}
-.brand-logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#ff7a7a)}
+.brand-logo{width:42px;height:42px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#ff7a7a)}
 .nav-links{display:flex;gap:14px;flex-wrap:wrap}
 .nav-links a{color:var(--muted)}
 .nav-links a:hover{color:var(--brand)}

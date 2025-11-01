@@ -19,7 +19,7 @@
     </div>
     <div>
       <div class="hero-card">
-        <img src="https://dummyimage.com/720x480/f8f8f8/aaa&text=ChatBizz+Preview" alt="ChatBizz app preview">
+        <img src="{{asset('img/app.jpg')}}" alt="ChatBizz app preview">
         <p class="muted mt-3">Seamless checkout via Razorpay • Live order tracking • Saved addresses</p>
       </div>
     </div>
