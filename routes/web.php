@@ -16,7 +16,7 @@ use App\Http\Controllers\PolicyController;
 |
 */
 
-Route::get('/', function(){
+Route::get('/landing', function(){
     return view('landing');
 })->name('landing');
 
