@@ -1,0 +1,64 @@
+/* ChatBizz Theme v1.0 – lightweight, responsive, no build step */
+:root{
+  --brand:#E53935;            /* ChatBizz red */
+  --brand-600:#d33531;
+  --brand-700:#b22c2a;
+  --fg:#0f172a;               /* slate-900 */
+  --muted:#64748b;            /* slate-500 */
+  --bg:#ffffff;
+  --card:#f8fafc;             /* slate-50 */
+  --border:#e5e7eb;           /* gray-200 */
+  --ring:#e5393533;           /* subtle brand ring */
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.6;color:var(--fg);background:var(--bg)}
+img{max-width:100%;display:block}
+a{color:var(--brand);text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1024px;margin:0 auto;padding:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px}
+.btn{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;border:1px solid transparent;font-weight:600;cursor:pointer}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-600)}
+.btn-outline{background:#fff;border-color:var(--brand);color:var(--brand)}
+.btn-outline:hover{background:#fff;border-color:var(--brand-700);color:var(--brand-700)}
+.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.8rem;background:#fee2e2;color:#7f1d1d}
+
+/* Header */
+.header{position:sticky;top:0;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(8px);border-bottom:1px solid var(--border);z-index:10}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.1rem;color:var(--fg)}
+.brand-logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#ff7a7a)}
+.nav-links{display:flex;gap:14px;flex-wrap:wrap}
+.nav-links a{color:var(--muted)}
+.nav-links a:hover{color:var(--brand)}
+
+/* Hero – single-section landing */
+.hero{padding:64px 0}
+.hero-wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:32px;align-items:center}
+.hero h1{font-size:2.25rem;line-height:1.2;margin:0 0 12px}
+.hero p{color:var(--muted);margin:0 0 24px}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero-card{padding:16px;border-radius:16px;background:#fff;border:1px solid var(--border)}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:24px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.kpi strong{display:block;font-size:1.25rem}
+
+/* Sections content (policies) */
+.h1{font-size:1.875rem;margin:0 0 6px}
+.h2{font-size:1.25rem;margin:22px 0 8px}
+.muted{color:var(--muted)}
+.list{padding-left:20px}
+
+/* Footer */
+.footer{margin-top:32px;color:var(--muted);font-size:.95rem}
+
+/* Utilities */
+.grid{display:grid;gap:16px}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.center{text-align:center}
+.mt-2{margin-top:8px} .mt-3{margin-top:12px} .mt-4{margin-top:16px} .mt-6{margin-top:24px}
+
+/* Responsive */
+@media (max-width: 900px){.hero-wrap{grid-template-columns:1fr}.nav{padding:6px 0}}
