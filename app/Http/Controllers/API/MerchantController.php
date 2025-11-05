@@ -230,31 +230,20 @@ class MerchantController extends Controller
             ->pluck('count', 'status')
             ->toArray();
 
-        $deliveryCounts = (clone $baseQuery)
-            ->select('delivery_status', DB::raw('COUNT(*) as count'))
-            ->groupBy('delivery_status')
-            ->pluck('count', 'delivery_status')
-            ->toArray();
-
         $knownStatuses = [
             'pending',
-            'confirmed',
-            'packed',
             'paid',
-            'rejected',
-            'failed',
-            'canceled',
-            'refunded',
-        ];
-
-        $knownDeliveryStatuses = [
-            'pending',
             'assigned',
+            'confirmed',
             'packed',
             'picked_up',
             'in_transit',
             'delivered',
+            'rejected',
+            'failed',
+            'canceled',
             'cancelled',
+            'refunded',
         ];
 
         $statusBreakdown = [];
@@ -262,12 +251,7 @@ class MerchantController extends Controller
             $statusBreakdown[$status] = $statusCounts[$status] ?? 0;
         }
 
-        $deliveryStatusBreakdown = [];
-        foreach ($knownDeliveryStatuses as $deliveryStatus) {
-            $deliveryStatusBreakdown[$deliveryStatus] = $deliveryCounts[$deliveryStatus] ?? 0;
-        }
-
-        $deliveredQuery = (clone $baseQuery)->where('delivery_status', 'delivered');
+        $deliveredQuery = (clone $baseQuery)->where('status', 'delivered');
 
         $totalRevenue = (clone $deliveredQuery)->sum('total_amount');
 
@@ -296,7 +280,6 @@ class MerchantController extends Controller
                 'id',
                 'merchant_transaction_id',
                 'status',
-                'delivery_status',
                 'total_amount',
                 'created_at',
                 'contact_name',
@@ -309,7 +292,6 @@ class MerchantController extends Controller
                     'id' => $order->id,
                     'merchant_transaction_id' => $order->merchant_transaction_id,
                     'status' => $order->status,
-                    'delivery_status' => $order->delivery_status,
                     'total_amount' => $order->total_amount,
                     'contact_name' => $order->contact_name,
                     'contact_number' => $order->contact_number,
@@ -329,7 +311,6 @@ class MerchantController extends Controller
                     'revenue' => $totalRevenue,
                 ],
                 'status_breakdown' => $statusBreakdown,
-                'delivery_status_breakdown' => $deliveryStatusBreakdown,
                 'settlements' => [
                     'merchant' => [
                         'settled_orders' => $merchantSettledCount,
