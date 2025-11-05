@@ -493,4 +493,80 @@ class MerchantController extends Controller
         return $data;
     }
 
+    public function settlementOrders(Request $request)
+    {
+        $merchant = $request->user();
+
+        $limit = (int) $request->query('limit', 10);
+        $limit = max(1, min($limit, 100));
+
+        $baseQuery = Order::with([
+                'orderItems:id,order_id,quantity',
+                'deliveryPartner:id,title,mobile',
+                'user:id,name,mobile',
+            ])
+            ->where('shop_id', $merchant->id)
+            ->where('status', 'delivered');
+
+        $columns = [
+            'id',
+            'merchant_transaction_id',
+            'status',
+            'sub_total',
+            'delivery_charges',
+            'platform_fee',
+            'total_amount',
+            'merchant_payment_settled',
+            'rider_payment_settled',
+            'contact_name',
+            'contact_number',
+            'created_at',
+            'updated_at',
+            'delivery_partner_id',
+            'user_id',
+            'address_id',
+            'shop_id',
+        ];
+
+        $settledQuery = (clone $baseQuery)->where('merchant_payment_settled', true);
+        $unsettledQuery = (clone $baseQuery)->where('merchant_payment_settled', false);
+
+        $settledOrders = (clone $settledQuery)
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get($columns)
+            ->map(fn (Order $order) => $this->transformOrder($order, [
+                'include_items' => false,
+                'include_address' => false,
+                'include_customer' => false,
+            ]));
+
+        $unsettledOrders = (clone $unsettledQuery)
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get($columns)
+            ->map(fn (Order $order) => $this->transformOrder($order, [
+                'include_items' => false,
+                'include_address' => false,
+                'include_customer' => false,
+            ]));
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'limit' => $limit,
+                'settled' => [
+                    'count' => (clone $settledQuery)->count(),
+                    'total_amount' => (float) (clone $settledQuery)->sum('total_amount'),
+                    'orders' => $settledOrders,
+                ],
+                'unsettled' => [
+                    'count' => (clone $unsettledQuery)->count(),
+                    'total_amount' => (float) (clone $unsettledQuery)->sum('total_amount'),
+                    'orders' => $unsettledOrders,
+                ],
+            ],
+        ]);
+    }
+
 }
