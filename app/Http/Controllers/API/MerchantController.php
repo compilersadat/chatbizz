@@ -393,7 +393,7 @@ class MerchantController extends Controller
 
         $order = Order::with([
                 'orderItems:id,order_id,product_name,quantity,price,product_id',
-                'deliveryPartner:id,name,mobile',
+                'deliveryPartner:id,title,mobile',
                 'user:id,name,mobile',
                 'address',
             ])
