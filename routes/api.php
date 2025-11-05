@@ -98,7 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::get('/merchant/dashboard', [MerchantController::class, 'dashboard']);
      Route::get('/merchant/orders', [MerchantController::class, 'orders']);
      Route::get('/merchant/orders/{orderId}', [MerchantController::class, 'orderDetails']);
-     Route::get('/merchant/orders/settlements', [MerchantController::class, 'settlementOrders']);
+     Route::get('/merchant/settlements', [MerchantController::class, 'settlementOrders']);
 
      Route::post('/service-requests/create-with-razorpay', [OrderController::class, 'createServiceWithRazorpayOrder']);
      Route::post('/service-requests/verify-payment', [OrderController::class, 'verifyServicePayment']);
