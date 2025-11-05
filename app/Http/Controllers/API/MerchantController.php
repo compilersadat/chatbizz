@@ -343,7 +343,7 @@ class MerchantController extends Controller
 
         $query = Order::with([
                 'orderItems:id,order_id,product_name,quantity,price',
-                'deliveryPartner:id,name,mobile',
+                'deliveryPartner:id,title,mobile',
                 'user:id,name,mobile',
             ])
             ->where('shop_id', $merchant->id)
