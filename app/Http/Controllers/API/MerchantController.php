@@ -9,6 +9,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use App\Models\MerchantProduct;
 use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 
 class MerchantController extends Controller
@@ -328,6 +329,168 @@ class MerchantController extends Controller
                 'recent_orders' => $recentOrders,
             ],
         ]);
+    }
+
+    public function orders(Request $request)
+    {
+        $merchant = $request->user();
+
+        $perPage = (int) $request->query('per_page', 10);
+        $perPage = max(1, min($perPage, 100));
+
+        $status = $request->query('status');
+        $search = $request->query('search');
+
+        $query = Order::with([
+                'orderItems:id,order_id,product_name,quantity,price',
+                'deliveryPartner:id,name,mobile',
+                'user:id,name,mobile',
+            ])
+            ->where('shop_id', $merchant->id)
+            ->when($status, function ($q, $status) {
+                $q->where('status', $status);
+            })
+            ->when($search, function ($q, $search) {
+                $q->where(function ($inner) use ($search) {
+                    $inner->where('merchant_transaction_id', 'like', "%{$search}%")
+                        ->orWhere('contact_name', 'like', "%{$search}%")
+                        ->orWhere('contact_number', 'like', "%{$search}%");
+                });
+            })
+            ->latest('created_at');
+
+        $orders = $query->paginate($perPage);
+
+        $orders->setCollection(
+            $orders->getCollection()->map(fn (Order $order) => $this->transformOrder($order, [
+                'include_items' => false,
+                'include_address' => false,
+            ]))
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'orders' => $orders->items(),
+            ],
+            'meta' => [
+                'current_page' => $orders->currentPage(),
+                'per_page' => $orders->perPage(),
+                'last_page' => $orders->lastPage(),
+                'total' => $orders->total(),
+                'has_more' => $orders->hasMorePages(),
+            ],
+            'links' => [
+                'next' => $orders->nextPageUrl(),
+                'prev' => $orders->previousPageUrl(),
+            ],
+        ]);
+    }
+
+    public function orderDetails(Request $request, int $orderId)
+    {
+        $merchant = $request->user();
+
+        $order = Order::with([
+                'orderItems:id,order_id,product_name,quantity,price,product_id',
+                'deliveryPartner:id,name,mobile',
+                'user:id,name,mobile',
+                'address',
+            ])
+            ->where('shop_id', $merchant->id)
+            ->find($orderId);
+
+        if (! $order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->transformOrder($order),
+        ]);
+    }
+
+    private function transformOrder(Order $order, array $options = []): array
+    {
+        $options = array_merge([
+            'include_items' => true,
+            'include_address' => true,
+            'include_customer' => true,
+        ], $options);
+
+        $orderItems = $order->relationLoaded('orderItems') ? $order->orderItems : collect();
+
+        $data = [
+            'id' => $order->id,
+            'merchant_transaction_id' => $order->merchant_transaction_id,
+            'status' => $order->status,
+            'sub_total' => (float) $order->sub_total,
+            'delivery_charges' => (float) $order->delivery_charges,
+            'platform_fee' => (float) $order->platform_fee,
+            'total_amount' => (float) $order->total_amount,
+            'merchant_payment_settled' => (bool) $order->merchant_payment_settled,
+            'rider_payment_settled' => (bool) $order->rider_payment_settled,
+            'contact' => [
+                'name' => $order->contact_name,
+                'number' => $order->contact_number,
+            ],
+            'items_summary' => [
+                'count' => $orderItems->count(),
+                'total_quantity' => $orderItems->sum('quantity'),
+            ],
+            'placed_at' => optional($order->created_at)->toDateTimeString(),
+            'updated_at' => optional($order->updated_at)->toDateTimeString(),
+        ];
+
+        $deliveryPartner = $order->relationLoaded('deliveryPartner') ? $order->deliveryPartner : null;
+
+        $data['delivery_partner'] = $deliveryPartner ? [
+            'id' => $deliveryPartner->id,
+            'name' => $deliveryPartner->name ?? null,
+            'mobile' => $deliveryPartner->mobile ?? null,
+        ] : null;
+
+        if ($options['include_customer']) {
+            $customer = $order->relationLoaded('user') ? $order->user : null;
+            $data['customer'] = $customer ? [
+                'id' => $customer->id,
+                'name' => $customer->name ?? null,
+                'mobile' => $customer->mobile ?? null,
+            ] : null;
+        }
+
+        if ($options['include_address']) {
+            $address = $order->relationLoaded('address') ? $order->address : null;
+            $data['address'] = $address ? [
+                'id' => $address->id,
+                'line_1' => $address->address_line_1,
+                'line_2' => $address->address_line_2,
+                'city' => $address->city,
+                'state' => $address->state,
+                'postal_code' => $address->postal_code,
+                'country' => $address->country,
+                'latitude' => $address->latitude,
+                'longitude' => $address->longitude,
+            ] : null;
+        }
+
+        if ($options['include_items']) {
+            $data['items'] = $orderItems->map(function (OrderItem $item) {
+                return [
+                    'id' => $item->id,
+                    'product_id' => $item->product_id,
+                    'product_name' => $item->product_name,
+                    'quantity' => (int) $item->quantity,
+                    'price' => (float) $item->price,
+                    'subtotal' => (float) ($item->price * $item->quantity),
+                ];
+            })->values();
+        }
+
+        return $data;
     }
 
 }
