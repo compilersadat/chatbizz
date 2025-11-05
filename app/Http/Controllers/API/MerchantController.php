@@ -8,6 +8,8 @@ use App\Models\Merchant;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Auth;
 use App\Models\MerchantProduct;
+use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 
 class MerchantController extends Controller
 {
@@ -209,6 +211,142 @@ class MerchantController extends Controller
         ]);
 
         return response()->json(['message' => 'Profile updated successfully.', 'data' => $merchant]);
+    }
+
+    public function dashboard(Request $request)
+    {
+        $merchant = $request->user();
+
+        $baseQuery = Order::where('shop_id', $merchant->id);
+
+        $totalOrders = (clone $baseQuery)->count();
+        $todayOrders = (clone $baseQuery)
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+
+        $statusCounts = (clone $baseQuery)
+            ->select('status', DB::raw('COUNT(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
+
+        $deliveryCounts = (clone $baseQuery)
+            ->select('delivery_status', DB::raw('COUNT(*) as count'))
+            ->groupBy('delivery_status')
+            ->pluck('count', 'delivery_status')
+            ->toArray();
+
+        $knownStatuses = [
+            'pending',
+            'confirmed',
+            'packed',
+            'paid',
+            'rejected',
+            'failed',
+            'canceled',
+            'refunded',
+        ];
+
+        $knownDeliveryStatuses = [
+            'pending',
+            'assigned',
+            'packed',
+            'picked_up',
+            'in_transit',
+            'delivered',
+            'cancelled',
+        ];
+
+        $statusBreakdown = [];
+        foreach ($knownStatuses as $status) {
+            $statusBreakdown[$status] = $statusCounts[$status] ?? 0;
+        }
+
+        $deliveryStatusBreakdown = [];
+        foreach ($knownDeliveryStatuses as $deliveryStatus) {
+            $deliveryStatusBreakdown[$deliveryStatus] = $deliveryCounts[$deliveryStatus] ?? 0;
+        }
+
+        $deliveredQuery = (clone $baseQuery)->where('delivery_status', 'delivered');
+
+        $totalRevenue = (clone $deliveredQuery)->sum('total_amount');
+
+        $merchantSettledQuery = (clone $deliveredQuery)->where('merchant_payment_settled', true);
+        $merchantUnsettledQuery = (clone $deliveredQuery)->where('merchant_payment_settled', false);
+
+        $merchantSettledAmount = (clone $merchantSettledQuery)->sum('total_amount');
+        $merchantUnsettledAmount = (clone $merchantUnsettledQuery)->sum('total_amount');
+        $merchantSettledCount = (clone $merchantSettledQuery)->count();
+        $merchantUnsettledCount = (clone $merchantUnsettledQuery)->count();
+
+        $riderSettledQuery = (clone $deliveredQuery)->where('rider_payment_settled', true);
+        $riderUnsettledQuery = (clone $deliveredQuery)->where('rider_payment_settled', false);
+
+        $riderSettledCount = (clone $riderSettledQuery)->count();
+        $riderUnsettledCount = (clone $riderUnsettledQuery)->count();
+        $riderSettledAmount = (clone $riderSettledQuery)->sum('delivery_charges');
+        $riderUnsettledAmount = (clone $riderUnsettledQuery)->sum('delivery_charges');
+
+        $recentLimit = max(1, (int) $request->query('recent_limit', 5));
+
+        $recentOrders = (clone $baseQuery)
+            ->latest('created_at')
+            ->take($recentLimit)
+            ->get([
+                'id',
+                'merchant_transaction_id',
+                'status',
+                'delivery_status',
+                'total_amount',
+                'created_at',
+                'contact_name',
+                'contact_number',
+                'merchant_payment_settled',
+                'rider_payment_settled',
+            ])
+            ->map(function (Order $order) {
+                return [
+                    'id' => $order->id,
+                    'merchant_transaction_id' => $order->merchant_transaction_id,
+                    'status' => $order->status,
+                    'delivery_status' => $order->delivery_status,
+                    'total_amount' => $order->total_amount,
+                    'contact_name' => $order->contact_name,
+                    'contact_number' => $order->contact_number,
+                    'placed_at' => $order->created_at?->toDateTimeString(),
+                    'merchant_payment_settled' => (bool) $order->merchant_payment_settled,
+                    'rider_payment_settled' => (bool) $order->rider_payment_settled,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'totals' => [
+                    'orders' => $totalOrders,
+                    'orders_today' => $todayOrders,
+                    'revenue' => $totalRevenue,
+                ],
+                'status_breakdown' => $statusBreakdown,
+                'delivery_status_breakdown' => $deliveryStatusBreakdown,
+                'settlements' => [
+                    'merchant' => [
+                        'settled_orders' => $merchantSettledCount,
+                        'unsettled_orders' => $merchantUnsettledCount,
+                        'settled_amount' => $merchantSettledAmount,
+                        'unsettled_amount' => $merchantUnsettledAmount,
+                    ],
+                    'rider' => [
+                        'settled_deliveries' => $riderSettledCount,
+                        'unsettled_deliveries' => $riderUnsettledCount,
+                        'settled_amount' => $riderSettledAmount,
+                        'unsettled_amount' => $riderUnsettledAmount,
+                    ],
+                ],
+                'recent_orders' => $recentOrders,
+            ],
+        ]);
     }
 
 }

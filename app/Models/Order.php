@@ -12,6 +12,7 @@ class Order extends Model
         'user_id', 'address_id', 'contact_name', 'contact_number',
         'sub_total', 'delivery_charges', 'platform_fee', 'total_amount',
         'merchant_transaction_id', 'status', 'delivery_partner_id', 'shop_id','razorpay_order_id', 'payment_gateway_id',
+        'merchant_payment_settled', 'rider_payment_settled',
         'pick_lat','pick_lng','drop_lng','drop_lat','completion_otp'
     ];
 

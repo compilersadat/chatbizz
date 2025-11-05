@@ -95,6 +95,8 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/merchant/products', [ProductController::class, 'getMerchantProducts']);
      Route::get('/categories-with-subcategories', [CategoryController::class, 'getCategoriesWithSubcategories']);
 
+     Route::get('/merchant/dashboard', [MerchantController::class, 'dashboard']);
+
      Route::post('/service-requests/create-with-razorpay', [OrderController::class, 'createServiceWithRazorpayOrder']);
      Route::post('/service-requests/verify-payment', [OrderController::class, 'verifyServicePayment']);
 
@@ -117,4 +119,3 @@ Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/getCharges',[OrderController::class, 'charges']);
-
