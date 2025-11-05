@@ -395,8 +395,25 @@ public function changeServiceStatus(Request $request)
             $order->razorpay_order_id = $razorpayOrder['id'];
             $order->save();
 
+            // Notify merchant about new order
+            $merchantToken = DeviceToken::where('user_id', $order->shop_id)
+                ->where('user_type', 'merchant')
+                ->value('device_token');
+
+            if ($merchantToken) {
+                FcmHelper::send(
+                    $merchantToken,
+                    'New Order Received',
+                    "Order #{$order->merchant_transaction_id} has been placed.",
+                    [
+                        'order_id' => $order->id,
+                        'screen' => 'merchant_order_details',
+                    ]
+                );
+            }
+
             DB::commit();
-            
+
 
             return response()->json([
                 'order_id' => $order->id,
