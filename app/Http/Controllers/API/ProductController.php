@@ -126,57 +126,67 @@ class ProductController extends Controller
     
     public function searchProducts(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $search = $request->input('search');
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = $perPage > 0 ? min($perPage, 100) : 10;
+
+        $search = trim((string) $request->input('search', ''));
         $catId = $request->input('cat_id');
         $subcatId = $request->input('subcat_id');
-        $merchantId = $request->input('merchant_id'); // NEW
-    
-        // Query merchant_products with product and merchant eager loaded
-        $query = MerchantProduct::with([
-            'product',
-            'merchant',
-        ])
-        // Filter by merchant_id if provided
-        ->when($merchantId, function($q) use ($merchantId) {
-            $q->where('merchant_id', $merchantId);
-        })
-        ->whereHas('product', function($q) use ($search, $catId, $subcatId) {
-            if ($search) {
-                $q->where('title', 'like', '%' . $search . '%');
-            }
-            if ($catId) {
-                $q->where('cat_id', $catId);
-            }
-            if ($subcatId) {
-                $q->where('subcat_id', $subcatId);
-            }
-        });
-    
+        $merchantId = $request->input('merchant_id');
+
+        $query = MerchantProduct::query()
+            ->select([
+                'merchant_products.id',
+                'merchant_products.product_id',
+                'merchant_products.merchant_id',
+                'merchant_products.stock',
+                'merchant_products.price',
+                'merchant_products.discount',
+                'merchant_products.description',
+                'products.title as product_title',
+                'products.thumbnail as product_thumbnail',
+                'products.status as product_status',
+                'products.created_at as product_created_at',
+                'products.updated_at as product_updated_at',
+                'merchants.name as merchant_name',
+            ])
+            ->join('tbl_product as products', 'products.id', '=', 'merchant_products.product_id')
+            ->join('merchants', 'merchants.id', '=', 'merchant_products.merchant_id')
+            ->when($merchantId, function ($q) use ($merchantId) {
+                $q->where('merchant_products.merchant_id', $merchantId);
+            })
+            ->when($search !== '', function ($q) use ($search) {
+                $q->where('products.title', 'like', '%' . $search . '%');
+            })
+            ->when($catId, function ($q) use ($catId) {
+                $q->where('products.cat_id', $catId);
+            })
+            ->when($subcatId, function ($q) use ($subcatId) {
+                $q->where('products.subcat_id', $subcatId);
+            })
+            ->orderBy('products.title');
+
         $products = $query->paginate($perPage);
-    
-        // Transform data
-        $transformed = $products->getCollection()->map(function($item) {
-            return [
-                'id' => $item->product->id,
-                'title' => $item->product->title,
-                'thumbnail' => $item->product->thumbnail,
-                'status' => $item->product->status,
-                'created_at' => $item->product->created_at,
-                'updated_at' => $item->product->updated_at,
-                'merchant_id' => $item->merchant->id,
-                'merchant_name' => $item->merchant->name,
-                // Merchant-specific fields from pivot
-                'stock' => (int) $item->stock,
-                'price' => (float) $item->price,
-                'discount_price' => (float) $item->discount,
-                'description' => $item->description,
-            ];
-        });
-    
-        // Reassign the mapped collection to paginator
-        $products->setCollection($transformed);
-    
+
+        $products->setCollection(
+            $products->getCollection()->map(function ($item) {
+                return [
+                    'id' => (int) $item->product_id,
+                    'title' => $item->product_title,
+                    'thumbnail' => $item->product_thumbnail,
+                    'status' => $item->product_status,
+                    'created_at' => $item->product_created_at,
+                    'updated_at' => $item->product_updated_at,
+                    'merchant_id' => (int) $item->merchant_id,
+                    'merchant_name' => $item->merchant_name,
+                    'stock' => $item->stock !== null ? (int) $item->stock : null,
+                    'price' => $item->price !== null ? (float) $item->price : null,
+                    'discount_price' => $item->discount !== null ? (float) $item->discount : null,
+                    'description' => $item->description,
+                ];
+            })
+        );
+
         return response()->json([
             'success' => true,
             'data' => $products,
@@ -185,4 +195,3 @@ class ProductController extends Controller
     
 
 }
-
