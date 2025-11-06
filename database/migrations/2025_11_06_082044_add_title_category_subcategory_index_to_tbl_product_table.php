@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -11,12 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('tbl_product', function (Blueprint $table) {
-            $table->index(
-                ['cat_id', 'subcat_id', 'title'],
-                'tbl_product_cat_subcat_title_index'
-            );
-        });
+        // We need to add the index via raw SQL to specify a prefix length for the TEXT column.
+        DB::statement(
+            'ALTER TABLE tbl_product ADD INDEX tbl_product_cat_subcat_title_index (cat_id, subcat_id, title(191))'
+        );
     }
 
     /**
@@ -24,8 +21,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('tbl_product', function (Blueprint $table) {
-            $table->dropIndex('tbl_product_cat_subcat_title_index');
-        });
+        DB::statement('ALTER TABLE tbl_product DROP INDEX tbl_product_cat_subcat_title_index');
     }
 };
