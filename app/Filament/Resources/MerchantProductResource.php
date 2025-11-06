@@ -65,7 +65,7 @@ class MerchantProductResource extends Resource
                 Forms\Components\TextInput::make('discount')
                     ->label('Discounted Price')
                     ->helperText('Leave empty to sell at original price.')
-                    ->numeric()->prefix('₹')->minValue(0)->rule('lte:price')->nullable()->columnSpan(4),
+                    ->numeric()->prefix('₹')->minValue(0)->rule('lte:price')->columnSpan(4),
 
                 Forms\Components\TextInput::make('stock')
                     ->numeric()->minValue(0)->required()->columnSpan(4),
