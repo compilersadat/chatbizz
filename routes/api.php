@@ -123,4 +123,5 @@ Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/getCharges',[OrderController::class, 'charges']);
+Route::get('/static-pages', [StaticPageController::class, 'index']);
 Route::get('/static-pages/{slug}', [StaticPageController::class, 'show']);
