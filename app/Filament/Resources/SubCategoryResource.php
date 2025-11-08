@@ -41,6 +41,8 @@ class SubCategoryResource extends Resource
                     ])
                     ->required(),
                     Forms\Components\FileUpload::make('image')->label('SubCategory Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
                 
             ]);

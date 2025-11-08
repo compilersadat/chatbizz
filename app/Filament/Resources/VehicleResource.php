@@ -44,6 +44,8 @@ class VehicleResource extends Resource
                     ->required()
                     ->columnSpanFull(),
                     Forms\Components\FileUpload::make('img')->label('Vehicle Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
                     Forms\Components\Select::make('status')
                     ->label('Vehicle Status')
@@ -155,6 +157,7 @@ class VehicleResource extends Resource
                     ->columnSpanFull(),
                 ImageEntry::make('img')
                     ->label('Image')
+                    ->disk('s3')
                     ->columnSpanFull(),
                 TextEntry::make('status')
                     ->label('Status')

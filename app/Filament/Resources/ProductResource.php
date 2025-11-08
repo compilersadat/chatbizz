@@ -60,6 +60,7 @@ class ProductResource extends Resource
                 Forms\Components\FileUpload::make('thumbnail')
                     ->label('Thumbnail')
                     ->image()
+                    ->disk('s3')
                     ->imagePreviewHeight('150')
                     ->directory('thumbnails')
                     ->visibility('public'),
@@ -100,6 +101,7 @@ class ProductResource extends Resource
 
                     Tables\Columns\ImageColumn::make('thumbnail')
                         ->label('Thumbnail')
+                        ->disk('s3')
                         ->circular(), // Optional: Makes image circular
 
                     Tables\Columns\TextColumn::make('description')

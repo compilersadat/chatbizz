@@ -80,6 +80,8 @@ class RiderResource extends Resource
                             ->required()
                             ->numeric(),
                         Forms\Components\FileUpload::make('rimg')->label('Deliver Boy Image')
+                            ->disk('s3')
+                            ->visibility('public')
                             ->required()
                             ->columnSpanFull(),
 

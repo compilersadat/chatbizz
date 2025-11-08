@@ -34,6 +34,8 @@ class SettingResource extends Resource
                      Forms\Components\Textarea::make('webname')
                     ->required(),
                     Forms\Components\FileUpload::make('weblogo')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
                 Forms\Components\Textarea::make('timezone')
                     ->required(),
@@ -135,7 +137,9 @@ class SettingResource extends Resource
             Fieldset::make('General Settings')
                 ->schema([
                     TextEntry::make('webname')->label('Website Name'),
-                    ImageEntry::make('weblogo')->label('Website Logo'),
+                    ImageEntry::make('weblogo')
+                        ->label('Website Logo')
+                        ->disk('s3'),
                     TextEntry::make('timezone')->label('Timezone'),
                     TextEntry::make('currency')->label('Currency'),
                 ])

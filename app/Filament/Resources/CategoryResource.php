@@ -40,6 +40,8 @@ class CategoryResource extends Resource
                     ])
                     ->required(),
                     Forms\Components\FileUpload::make('cat_img')->label('Category Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
             ]);
     }

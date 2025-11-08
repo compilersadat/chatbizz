@@ -34,6 +34,8 @@ class ProductCategoryResource extends Resource
                     ])
                     ->required(),
                 Forms\Components\FileUpload::make('image')->label('Category Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
             ]);
     }
@@ -58,6 +60,7 @@ class ProductCategoryResource extends Resource
                     ->sortable(),
                     Tables\Columns\ImageColumn::make('image')
                     ->label('image')
+                    ->disk('s3')
                     ->circular(), // Optional: Makes image circular
 
                 Tables\Columns\TextColumn::make('created_at')

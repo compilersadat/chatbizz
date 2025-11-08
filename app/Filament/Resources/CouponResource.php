@@ -48,6 +48,8 @@ class CouponResource extends Resource
 
                     Forms\Components\FileUpload::make('c_img')
                         ->label('Coupon Image')
+                        ->disk('s3')
+                        ->visibility('public')
                         ->required()
                         ->columnSpanFull(),
                 ])->columns(2),
@@ -115,7 +117,9 @@ class CouponResource extends Resource
 
                   
  
-                Tables\Columns\ImageColumn::make('c_img')->circular(),
+                Tables\Columns\ImageColumn::make('c_img')
+                    ->disk('s3')
+                    ->circular(),
 
                 Tables\Columns\TextColumn::make('cdate')
                     ->date()

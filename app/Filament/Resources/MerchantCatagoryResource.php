@@ -35,6 +35,8 @@ class MerchantCatagoryResource extends Resource
                     ])
                     ->required(),
                     Forms\Components\FileUpload::make('cat_img')->label('Category Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
             ]);
     }
@@ -57,6 +59,7 @@ class MerchantCatagoryResource extends Resource
                 ->sortable(),
              Tables\Columns\ImageColumn::make('cat_img')
                 ->label('Image')
+                ->disk('s3')
                 ->circular(), 
             Tables\Columns\TextColumn::make('created_at')
                 ->dateTime()

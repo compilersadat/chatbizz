@@ -42,7 +42,11 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        Forms\Components\FileUpload::make('thumbnail')->label('Thumbnail')->required(),
+        Forms\Components\FileUpload::make('thumbnail')
+            ->label('Thumbnail')
+            ->disk('s3')
+            ->visibility('public')
+            ->required(),
 
         Forms\Components\Select::make('status')
             ->label('Merchant Status')
@@ -112,6 +116,7 @@ class MerchantResource extends Resource
                     
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->label('Thumbnail')
+                    ->disk('s3')
                     ->circular(), 
                     
                 Tables\Columns\TextColumn::make('address')

@@ -35,6 +35,8 @@ class PaymentListResource extends Resource
                 //     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('img')
                     ->label('Payment Gateway Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
                 Forms\Components\Textarea::make('attributes')
                     ->required()

@@ -31,6 +31,8 @@ class ManagerResource extends Resource
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('img')
                     ->label('Zone Manager Image')
+                    ->disk('s3')
+                    ->visibility('public')
                     ->required(),
                 Forms\Components\Select::make('status')
                     ->label('Manager Status')
