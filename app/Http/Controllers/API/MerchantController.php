@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Merchant;
 use Kreait\Firebase\Factory;
@@ -212,6 +213,24 @@ class MerchantController extends Controller
         ]);
 
         return response()->json(['message' => 'Profile updated successfully.', 'data' => $merchant]);
+    }
+
+    /**
+     * Delete the authenticated merchant account and revoke API tokens.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $merchant = $request->user();
+
+        DB::transaction(function () use ($merchant) {
+            $merchant->tokens()->delete();
+            $merchant->delete();
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Account deleted successfully.',
+        ]);
     }
 
     public function dashboard(Request $request)

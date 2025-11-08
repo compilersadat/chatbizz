@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
  
      Route::get('/merchant/profile', [MerchantController::class, 'getProfile']);
      Route::post('/merchant/profile', [MerchantController::class, 'updateProfile']);
+     Route::delete('/user/account', [MerchantController::class, 'deleteAccount']);
 
 
 });
