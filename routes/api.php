@@ -11,6 +11,7 @@ use App\Http\Controllers\API\AddressController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ChatController;
+use App\Http\Controllers\API\StaticPageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -122,3 +123,4 @@ Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/getCharges',[OrderController::class, 'charges']);
+Route::get('/static-pages/{slug}', [StaticPageController::class, 'show']);
