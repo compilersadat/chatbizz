@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\SubCategoryResource\Pages;
 use App\Filament\Resources\SubCategoryResource\RelationManagers;
 use App\Models\SubCategory;
@@ -40,7 +41,7 @@ class SubCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    Forms\Components\FileUpload::make('image')->label('SubCategory Image')
+                    FallbackFileUpload::make('image')->label('SubCategory Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->required(),

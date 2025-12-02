@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\ManagerResource\Pages;
 use App\Filament\Resources\ManagerResource\RelationManagers;
 use App\Models\Manager;
@@ -29,7 +30,7 @@ class ManagerResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\FileUpload::make('img')
+                FallbackFileUpload::make('img')
                     ->label('Zone Manager Image')
                     ->disk('s3')
                     ->visibility('public')

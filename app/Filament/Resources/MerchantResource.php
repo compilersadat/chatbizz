@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\MerchantResource\Pages;
 use App\Filament\Resources\MerchantResource\RelationManagers;
+use App\Support\StorageFallback;
 use App\Models\Merchant;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -42,7 +44,7 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        Forms\Components\FileUpload::make('thumbnail')
+        FallbackFileUpload::make('thumbnail')
             ->label('Thumbnail')
             ->disk('s3')
             ->visibility('public')
@@ -116,7 +118,7 @@ class MerchantResource extends Resource
                     
                 Tables\Columns\ImageColumn::make('thumbnail')
                     ->label('Thumbnail')
-                    ->disk('s3')
+                    ->getStateUsing(fn ($record) => StorageFallback::url($record->thumbnail))
                     ->circular(), 
                     
                 Tables\Columns\TextColumn::make('address')

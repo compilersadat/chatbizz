@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\VehicleResource\Pages;
 use App\Filament\Resources\VehicleResource\RelationManagers;
+use App\Support\StorageFallback;
 use App\Models\Vehicle;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -43,7 +45,7 @@ class VehicleResource extends Resource
                     ->label('Vehicle Title')
                     ->required()
                     ->columnSpanFull(),
-                    Forms\Components\FileUpload::make('img')->label('Vehicle Image')
+                    FallbackFileUpload::make('img')->label('Vehicle Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->required(),
@@ -157,7 +159,7 @@ class VehicleResource extends Resource
                     ->columnSpanFull(),
                 ImageEntry::make('img')
                     ->label('Image')
-                    ->disk('s3')
+                    ->getStateUsing(fn ($record) => StorageFallback::url($record->img))
                     ->columnSpanFull(),
                 TextEntry::make('status')
                     ->label('Status')

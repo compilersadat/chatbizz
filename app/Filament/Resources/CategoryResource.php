@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
@@ -39,7 +40,7 @@ class CategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    Forms\Components\FileUpload::make('cat_img')->label('Category Image')
+                    FallbackFileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->required(),

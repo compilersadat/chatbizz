@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\RiderResource\Pages;
 use App\Filament\Resources\RiderResource\RelationManagers;
 use App\Models\Rider;
@@ -79,7 +80,7 @@ class RiderResource extends Resource
                         Forms\Components\TextInput::make('rate')
                             ->required()
                             ->numeric(),
-                        Forms\Components\FileUpload::make('rimg')->label('Deliver Boy Image')
+                        FallbackFileUpload::make('rimg')->label('Deliver Boy Image')
                             ->disk('s3')
                             ->visibility('public')
                             ->required()

@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\ProductCategoryResource\Pages;
 use App\Filament\Resources\ProductCategoryResource\RelationManagers;
+use App\Support\StorageFallback;
 use App\Models\ProductCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -33,7 +35,7 @@ class ProductCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                Forms\Components\FileUpload::make('image')->label('Category Image')
+                FallbackFileUpload::make('image')->label('Category Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->required(),
@@ -60,7 +62,7 @@ class ProductCategoryResource extends Resource
                     ->sortable(),
                     Tables\Columns\ImageColumn::make('image')
                     ->label('image')
-                    ->disk('s3')
+                    ->getStateUsing(fn ($record) => StorageFallback::url($record->image))
                     ->circular(), // Optional: Makes image circular
 
                 Tables\Columns\TextColumn::make('created_at')

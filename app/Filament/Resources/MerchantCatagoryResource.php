@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\MerchantCatagoryResource\Pages;
 use App\Filament\Resources\MerchantCatagoryResource\RelationManagers;
+use App\Support\StorageFallback;
 use App\Models\MerchantCatagory;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -34,7 +36,7 @@ class MerchantCatagoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    Forms\Components\FileUpload::make('cat_img')->label('Category Image')
+                    FallbackFileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->required(),
@@ -59,7 +61,7 @@ class MerchantCatagoryResource extends Resource
                 ->sortable(),
              Tables\Columns\ImageColumn::make('cat_img')
                 ->label('Image')
-                ->disk('s3')
+                ->getStateUsing(fn ($record) => StorageFallback::url($record->cat_img))
                 ->circular(), 
             Tables\Columns\TextColumn::make('created_at')
                 ->dateTime()

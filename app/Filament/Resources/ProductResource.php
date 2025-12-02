@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\ProductResource\Pages;
 use App\Filament\Resources\ProductResource\RelationManagers;
+use App\Support\StorageFallback;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -57,7 +59,7 @@ class ProductResource extends Resource
                     ])
                     ->required(),
 
-                Forms\Components\FileUpload::make('thumbnail')
+                FallbackFileUpload::make('thumbnail')
                     ->label('Thumbnail')
                     ->image()
                     ->disk('s3')
@@ -101,7 +103,7 @@ class ProductResource extends Resource
 
                     Tables\Columns\ImageColumn::make('thumbnail')
                         ->label('Thumbnail')
-                        ->disk('s3')
+                        ->getStateUsing(fn ($record) => StorageFallback::url($record->thumbnail))
                         ->circular(), // Optional: Makes image circular
 
                     Tables\Columns\TextColumn::make('description')

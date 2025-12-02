@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\PaymentListResource\Pages;
 use App\Filament\Resources\PaymentListResource\RelationManagers;
 use App\Models\PaymentList;
@@ -33,7 +34,7 @@ class PaymentListResource extends Resource
                 // Forms\Components\Textarea::make('img')
                 //     ->required()
                 //     ->columnSpanFull(),
-                Forms\Components\FileUpload::make('img')
+                FallbackFileUpload::make('img')
                     ->label('Payment Gateway Image')
                     ->disk('s3')
                     ->visibility('public')
