@@ -47,7 +47,9 @@ class MerchantResource extends Resource
         FallbackFileUpload::make('thumbnail')
             ->label('Thumbnail')
             ->disk('s3')
+            ->directory('thumbnails')
             ->visibility('public')
+            ->image()
             ->required(),
 
         Forms\Components\Select::make('status')
