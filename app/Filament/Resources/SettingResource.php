@@ -18,6 +18,10 @@ use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Fieldset;
 use Filament\Infolists\Components\ImageEntry;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class SettingResource extends Resource
 {
@@ -38,7 +42,27 @@ class SettingResource extends Resource
                     FallbackFileUpload::make('weblogo')
                     ->disk('s3')
                     ->visibility('public')
-                    ->required(),
+                    ->directory('settings')
+                    ->required()
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'settings/' . $filename;
+
+                        $stream = $file->readStream();
+                        $options = ['visibility' => 'public'];
+
+                        Storage::disk('s3')->put($path, $stream, $options);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+
+                        Log::info('S3 upload result', [
+                            'path' => $path,
+                            'exists' => Storage::disk('s3')->exists($path),
+                        ]);
+
+                        return $path;
+                    }),
                 Forms\Components\Textarea::make('timezone')
                     ->required(),
                 Forms\Components\Textarea::make('currency')

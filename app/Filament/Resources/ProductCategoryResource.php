@@ -14,6 +14,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class ProductCategoryResource extends Resource
 {
@@ -37,7 +41,25 @@ class ProductCategoryResource extends Resource
                     ->required(),
                 FallbackFileUpload::make('image')->label('Category Image')
                     ->disk('s3')
-                    ->required(),
+                    ->directory('product-categories')
+                    ->required()
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'product-categories/' . $filename;
+
+                        $stream = $file->readStream();
+                        Storage::disk('s3')->put($path, $stream);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+
+                        Log::info('S3 upload result', [
+                            'path' => $path,
+                            'exists' => Storage::disk('s3')->exists($path),
+                        ]);
+
+                        return $path;
+                    }),
             ]);
     }
 

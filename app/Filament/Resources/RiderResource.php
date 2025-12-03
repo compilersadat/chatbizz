@@ -15,6 +15,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Wizard;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 
 class RiderResource extends Resource
@@ -84,7 +88,27 @@ class RiderResource extends Resource
                             ->disk('s3')
                             ->visibility('public')
                             ->required()
-                            ->columnSpanFull(),
+                            ->directory('riders')
+                            ->columnSpanFull()
+                            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                                $path = 'riders/' . $filename;
+
+                                $stream = $file->readStream();
+                                $options = ['visibility' => 'public'];
+
+                                Storage::disk('s3')->put($path, $stream, $options);
+                                if (is_resource($stream)) {
+                                    fclose($stream);
+                                }
+
+                                Log::info('S3 upload result', [
+                                    'path' => $path,
+                                    'exists' => Storage::disk('s3')->exists($path),
+                                ]);
+
+                                return $path;
+                            }),
 
                        
                     ])->columns(2),
