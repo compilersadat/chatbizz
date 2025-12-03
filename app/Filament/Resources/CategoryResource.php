@@ -42,7 +42,6 @@ class CategoryResource extends Resource
                     ->required(),
                     FallbackFileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->required(),
             ]);
     }

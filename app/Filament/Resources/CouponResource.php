@@ -51,7 +51,6 @@ class CouponResource extends Resource
                     FallbackFileUpload::make('c_img')
                         ->label('Coupon Image')
                         ->disk('s3')
-                        ->visibility('public')
                         ->required()
                         ->columnSpanFull(),
                 ])->columns(2),

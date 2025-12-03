@@ -64,9 +64,7 @@ class ProductResource extends Resource
                     ->image()
                     ->disk('s3')
                     ->imagePreviewHeight('150')
-                    ->directory('thumbnails')
-                    ->visibility('public'),
-            
+                    ->directory('thumbnails'),            
                 Forms\Components\TextInput::make('description')
                     ->label('Description')
                     ->columnSpanFull(),
