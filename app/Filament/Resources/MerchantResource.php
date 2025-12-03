@@ -19,7 +19,6 @@ use Spatie\Permission\Models\Role;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\View;
-use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -48,25 +47,12 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        FileUpload::make('thumbnail')
+        FallbackFileUpload::make('thumbnail')
             ->label('Thumbnail')
+            ->image()
             ->disk('s3')
             ->directory('thumbnails')
-            ->visibility('public')
-            ->image()
-            ->required()
-             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
-        $path = $file->storePublicly('thumbnails', 's3');
-
-        Log::info('Thumbnail stored at path', [
-            'path'   => $path,
-            'bucket' => config('filesystems.disks.s3.bucket'),
-            'region' => config('filesystems.disks.s3.region'),
-            'exists' => Storage::disk('s3')->exists($path),
-        ]);
-
-        return $path;
-    }),
+            ->required(),
 
         Forms\Components\Select::make('status')
             ->label('Merchant Status')
