@@ -19,6 +19,7 @@ use Spatie\Permission\Models\Role;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\View;
+use Filament\Forms\Components\FileUpload;
 
 
 class MerchantResource extends Resource
@@ -44,7 +45,7 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        FallbackFileUpload::make('thumbnail')
+        FileUpload::make('thumbnail')
             ->label('Thumbnail')
             ->disk('s3')
             ->directory('thumbnails')
