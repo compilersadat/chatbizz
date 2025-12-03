@@ -48,26 +48,32 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        FileUpload::make('thumbnail')
+       FileUpload::make('thumbnail')
             ->label('Thumbnail')
-            ->disk('s3')
-            ->directory('thumbnails')
+            ->disk('s3')                 // still fine
+            ->directory('thumbnails')    // logical directory in the bucket
             ->image()
             ->required()
+            ->storeFiles(false)          // ⬅️ tell Filament "don't auto-store, I'll do it"
             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
-                // Generate your own file name:
+                // Generate a unique filename
                 $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                $path = 'thumbnails/' . $filename;
 
-                // ⬅️ RAW PUT to S3 – NO ACL OPTIONS
-                Storage::disk('s3')->put($path, file_get_contents($file->getRealPath()));
+                // Let Laravel deal with the temp path & stream:
+                // This does a raw PUT with no ACL options as long as config has no 'visibility'
+                $path = Storage::disk('s3')->putFileAs(
+                    'thumbnails', // directory
+                    $file,        // the TemporaryUploadedFile
+                    $filename     // final filename
+                );
 
-                Log::info('S3 upload result', [
+                // Optional: quick sanity log
+                \Log::info('S3 upload result', [
                     'path'   => $path,
                     'exists' => Storage::disk('s3')->exists($path),
                 ]);
 
-                // This string will be saved into merchants.thumbnail
+                // This path (e.g. "thumbnails/abc.jpg") will be saved in merchants.thumbnail
                 return $path;
             }),
 
