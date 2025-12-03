@@ -15,7 +15,15 @@ class AllStats extends BaseWidget
     protected function getStats(): array
     {
         $liveOrders = Order::query()
-            ->whereNotIn('o_status', ['completed', 'cancelled'])
+            ->whereNotIn('status', [
+                'completed',
+                'delivered',
+                'cancelled',
+                'canceled',
+                'rejected',
+                'failed',
+                'refunded',
+            ])
             ->count();
 
         return [
