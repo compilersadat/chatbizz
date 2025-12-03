@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\View;
 use Filament\Forms\Components\FileUpload;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Illuminate\Support\Facades\Log;
 
 
 class MerchantResource extends Resource
