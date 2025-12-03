@@ -47,11 +47,11 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-        FallbackFileUpload::make('thumbnail')
+        FileUpload::make('thumbnail')
             ->label('Thumbnail')
-            ->image()
             ->disk('s3')
             ->directory('thumbnails')
+            ->image()
             ->required(),
 
         Forms\Components\Select::make('status')
