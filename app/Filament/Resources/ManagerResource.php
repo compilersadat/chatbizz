@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\ManagerResource\Pages;
 use App\Filament\Resources\ManagerResource\RelationManagers;
 use App\Models\Manager;
@@ -14,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,7 +34,7 @@ class ManagerResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                FallbackFileUpload::make('img')
+                FileUpload::make('img')
                     ->label('Zone Manager Image')
                     ->disk('s3')
                     ->visibility('public')

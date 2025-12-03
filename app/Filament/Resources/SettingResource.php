@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\SettingResource\Pages;
 use App\Filament\Resources\SettingResource\RelationManagers;
 use App\Support\StorageFallback;
 use App\Models\Setting;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -39,7 +39,7 @@ class SettingResource extends Resource
             ->schema([              //
                      Forms\Components\Textarea::make('webname')
                     ->required(),
-                    FallbackFileUpload::make('weblogo')
+                    FileUpload::make('weblogo')
                     ->disk('s3')
                     ->visibility('public')
                     ->directory('settings')

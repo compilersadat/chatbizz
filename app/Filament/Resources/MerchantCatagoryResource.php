@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\MerchantCatagoryResource\Pages;
 use App\Filament\Resources\MerchantCatagoryResource\RelationManagers;
 use App\Support\StorageFallback;
 use App\Models\MerchantCatagory;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -40,7 +40,7 @@ class MerchantCatagoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    FallbackFileUpload::make('cat_img')->label('Category Image')
+                    FileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->directory('merchant-categories')

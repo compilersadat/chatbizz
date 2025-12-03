@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\CouponResource\Pages;
 use App\Filament\Resources\CouponResource\RelationManagers;
 use App\Support\StorageFallback;
 use App\Models\Coupon;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -52,7 +52,7 @@ class CouponResource extends Resource
                         ->required()
                         ->columnSpanFull(),
 
-                    FallbackFileUpload::make('c_img')
+                    FileUpload::make('c_img')
                         ->label('Coupon Image')
                         ->disk('s3')
                         ->directory('coupons')

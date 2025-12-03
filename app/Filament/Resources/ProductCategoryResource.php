@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\ProductCategoryResource\Pages;
 use App\Filament\Resources\ProductCategoryResource\RelationManagers;
 use App\Support\StorageFallback;
 use App\Models\ProductCategory;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -39,7 +39,7 @@ class ProductCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                FallbackFileUpload::make('image')->label('Category Image')
+                FileUpload::make('image')->label('Category Image')
                     ->disk('s3')
                     ->directory('product-categories')
                     ->required()

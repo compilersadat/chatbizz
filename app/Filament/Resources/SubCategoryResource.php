@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\SubCategoryResource\Pages;
 use App\Filament\Resources\SubCategoryResource\RelationManagers;
 use App\Models\SubCategory;
@@ -14,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -45,7 +45,7 @@ class SubCategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    FallbackFileUpload::make('image')->label('SubCategory Image')
+                    FileUpload::make('image')->label('SubCategory Image')
                     ->disk('s3')
                     ->visibility('public')
                     ->directory('subcategories')
