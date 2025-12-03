@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Filament\Resources\CategoryResource\RelationManagers;
 use App\Models\Category;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -44,7 +44,7 @@ class CategoryResource extends Resource
                         0 => 'Unpublished',
                     ])
                     ->required(),
-                    FallbackFileUpload::make('cat_img')->label('Category Image')
+                    FileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
                     ->directory('categories')
                     ->required()

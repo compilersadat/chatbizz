@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Components\FallbackFileUpload;
 use App\Filament\Resources\RiderResource\Pages;
 use App\Filament\Resources\RiderResource\RelationManagers;
 use App\Models\Rider;
@@ -15,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Wizard;
 use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -84,7 +84,7 @@ class RiderResource extends Resource
                         Forms\Components\TextInput::make('rate')
                             ->required()
                             ->numeric(),
-                        FallbackFileUpload::make('rimg')->label('Deliver Boy Image')
+                        FileUpload::make('rimg')->label('Deliver Boy Image')
                             ->disk('s3')
                             ->visibility('public')
                             ->required()
