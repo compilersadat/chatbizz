@@ -15,6 +15,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Actions\Action;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
  
 
 class CouponResource extends Resource
@@ -51,8 +55,26 @@ class CouponResource extends Resource
                     FallbackFileUpload::make('c_img')
                         ->label('Coupon Image')
                         ->disk('s3')
+                        ->directory('coupons')
                         ->required()
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                            $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                            $path = 'coupons/' . $filename;
+
+                            $stream = $file->readStream();
+                            Storage::disk('s3')->put($path, $stream);
+                            if (is_resource($stream)) {
+                                fclose($stream);
+                            }
+
+                            Log::info('S3 upload result', [
+                                'path' => $path,
+                                'exists' => Storage::disk('s3')->exists($path),
+                            ]);
+
+                            return $path;
+                        }),
                 ])->columns(2),
 
                 Forms\Components\Section::make('Coupon Conditions')

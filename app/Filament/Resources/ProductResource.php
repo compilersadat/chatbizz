@@ -15,6 +15,10 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Select;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 
 class ProductResource extends Resource
@@ -64,7 +68,24 @@ class ProductResource extends Resource
                     ->image()
                     ->disk('s3')
                     ->imagePreviewHeight('150')
-                    ->directory('thumbnails'),            
+                    ->directory('thumbnails')
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'thumbnails/' . $filename;
+
+                        $stream = $file->readStream();
+                        Storage::disk('s3')->put($path, $stream);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+
+                        Log::info('S3 upload result', [
+                            'path' => $path,
+                            'exists' => Storage::disk('s3')->exists($path),
+                        ]);
+
+                        return $path;
+                    }),            
                 Forms\Components\TextInput::make('description')
                     ->label('Description')
                     ->columnSpanFull(),

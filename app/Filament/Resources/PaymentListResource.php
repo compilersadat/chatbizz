@@ -13,6 +13,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PaymentListResource extends Resource
 {
@@ -38,7 +42,27 @@ class PaymentListResource extends Resource
                     ->label('Payment Gateway Image')
                     ->disk('s3')
                     ->visibility('public')
-                    ->required(),
+                    ->directory('payment-list')
+                    ->required()
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'payment-list/' . $filename;
+
+                        $stream = $file->readStream();
+                        $options = ['visibility' => 'public'];
+
+                        Storage::disk('s3')->put($path, $stream, $options);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+
+                        Log::info('S3 upload result', [
+                            'path' => $path,
+                            'exists' => Storage::disk('s3')->exists($path),
+                        ]);
+
+                        return $path;
+                    }),
                 Forms\Components\Textarea::make('attributes')
                     ->required()
                     ->columnSpanFull(),

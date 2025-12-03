@@ -22,6 +22,10 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\BadgeEntry;
 use Filament\Infolists\Components\Section;
 use Filament\Forms\Components\Card;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class VehicleResource extends Resource
 {
@@ -48,7 +52,27 @@ class VehicleResource extends Resource
                     FallbackFileUpload::make('img')->label('Vehicle Image')
                     ->disk('s3')
                     ->visibility('public')
-                    ->required(),
+                    ->directory('vehicles')
+                    ->required()
+                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                        $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                        $path = 'vehicles/' . $filename;
+
+                        $stream = $file->readStream();
+                        $options = ['visibility' => 'public'];
+
+                        Storage::disk('s3')->put($path, $stream, $options);
+                        if (is_resource($stream)) {
+                            fclose($stream);
+                        }
+
+                        Log::info('S3 upload result', [
+                            'path' => $path,
+                            'exists' => Storage::disk('s3')->exists($path),
+                        ]);
+
+                        return $path;
+                    }),
                     Forms\Components\Select::make('status')
                     ->label('Vehicle Status')
                     ->options([
