@@ -23,7 +23,7 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Filament\Forms\Components\FileUpload;
-
+use Illuminate\Support\Str;
 
 class MerchantResource extends Resource
 {
@@ -53,7 +53,23 @@ class MerchantResource extends Resource
             ->disk('s3')
             ->directory('thumbnails')
             ->image()
-            ->required(),
+            ->required()
+            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
+                // Generate your own file name:
+                $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = 'thumbnails/' . $filename;
+
+                // ⬅️ RAW PUT to S3 – NO ACL OPTIONS
+                Storage::disk('s3')->put($path, file_get_contents($file->getRealPath()));
+
+                Log::info('S3 upload result', [
+                    'path'   => $path,
+                    'exists' => Storage::disk('s3')->exists($path),
+                ]);
+
+                // This string will be saved into merchants.thumbnail
+                return $path;
+            }),
 
         Forms\Components\Select::make('status')
             ->label('Merchant Status')
