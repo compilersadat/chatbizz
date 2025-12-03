@@ -37,7 +37,6 @@ class ProductCategoryResource extends Resource
                     ->required(),
                 FallbackFileUpload::make('image')->label('Category Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->required(),
             ]);
     }
