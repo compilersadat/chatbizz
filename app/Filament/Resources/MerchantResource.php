@@ -54,19 +54,17 @@ class MerchantResource extends Resource
             ->visibility('public')
             ->image()
             ->required()
-            ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
-        Log::info('Saving thumbnail to S3', [
-            'original_name' => $file->getClientOriginalName(),
-        ]);
-
-        // This is basically what Filament does internally:
+             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
         $path = $file->storePublicly('thumbnails', 's3');
 
         Log::info('Thumbnail stored at path', [
-            'path' => $path,
+            'path'   => $path,
+            'bucket' => config('filesystems.disks.s3.bucket'),
+            'region' => config('filesystems.disks.s3.region'),
+            'exists' => Storage::disk('s3')->exists($path),
         ]);
 
-        return $path; // this will be stored in merchants.thumbnail
+        return $path;
     }),
 
         Forms\Components\Select::make('status')
