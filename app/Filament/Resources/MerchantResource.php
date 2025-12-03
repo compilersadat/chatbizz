@@ -48,32 +48,30 @@ class MerchantResource extends Resource
 
         TextInput::make('address')->required()->maxLength(255),
 
-       FileUpload::make('thumbnail')
+        FileUpload::make('thumbnail')
             ->label('Thumbnail')
-            ->disk('s3')                 // still fine
-            ->directory('thumbnails')    // logical directory in the bucket
+            ->disk('s3')
+            ->directory('thumbnails')
             ->image()
             ->required()
-            ->storeFiles(false)          // ⬅️ tell Filament "don't auto-store, I'll do it"
             ->saveUploadedFileUsing(function (TemporaryUploadedFile $file, $record): string {
-                // Generate a unique filename
+                // Generate your own file name:
                 $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
+                $path = 'thumbnails/' . $filename;
 
-                // Let Laravel deal with the temp path & stream:
-                // This does a raw PUT with no ACL options as long as config has no 'visibility'
-                $path = Storage::disk('s3')->putFileAs(
-                    'thumbnails', // directory
-                    $file,        // the TemporaryUploadedFile
-                    $filename     // final filename
-                );
+                // Livewire temp files may live on S3, so stream instead of reading a local path
+                $stream = $file->readStream();
+                Storage::disk('s3')->put($path, $stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
 
-                // Optional: quick sanity log
-                \Log::info('S3 upload result', [
+                Log::info('S3 upload result', [
                     'path'   => $path,
                     'exists' => Storage::disk('s3')->exists($path),
                 ]);
 
-                // This path (e.g. "thumbnails/abc.jpg") will be saved in merchants.thumbnail
+                // This string will be saved into merchants.thumbnail
                 return $path;
             }),
 
