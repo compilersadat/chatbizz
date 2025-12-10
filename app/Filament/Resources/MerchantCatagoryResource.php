@@ -50,9 +50,7 @@ class MerchantCatagoryResource extends Resource
                         $path = 'merchant-categories/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }
