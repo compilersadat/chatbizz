@@ -50,14 +50,12 @@ class SubCategoryResource extends Resource
                     ->visibility('public')
                     ->directory('subcategories')
                     ->required()
-                    ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
+                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
                         $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
                         $path = 'subcategories/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }
