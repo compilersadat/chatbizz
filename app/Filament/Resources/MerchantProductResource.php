@@ -54,7 +54,7 @@ class MerchantProductResource extends Resource
                             ->pluck('title', 'id')
                             ->toArray();
                     })
-                    ->getOptionLabelUsing(fn ($value) => optional(Product::find($value))->name)
+                    ->getOptionLabelUsing(fn ($value) => optional(Product::find($value))->title)
                     ->required()
                     ->columnSpan(6),
 
