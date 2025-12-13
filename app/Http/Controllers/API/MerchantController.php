@@ -62,7 +62,7 @@ class MerchantController extends Controller
                 // If user does not exist, create a new merchant record.
                 // 'name' is set to the phone number, and 'status' is 0.
                 $user = Merchant::create(
-                    ['mobile' => $phoneNumber, 'name' => $phoneNumber, 'status' => 0]
+                    ['mobile' => $phoneNumber, 'name' => $phoneNumber, 'status' => 0,'merchant_type' => 'none']
                 );
                 $message = 'Registration successful (new user).';
             }
