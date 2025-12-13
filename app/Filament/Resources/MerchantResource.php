@@ -171,7 +171,13 @@ class MerchantResource extends Resource
             ]);
     }
 
-public static function getRelations(): array
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('merchant_type', '!=', 'none');
+    }
+
+    public static function getRelations(): array
     {
         return [
             //
