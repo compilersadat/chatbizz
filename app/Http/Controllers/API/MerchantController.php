@@ -203,14 +203,21 @@ class MerchantController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'mobile' => 'required|string|max:20',
+            'visible_on_chat' => 'sometimes|boolean',
         ]);
 
         $merchant = $request->user();
 
-        $merchant->update([
+        $updateData = [
             'name' => $request->name,
             'mobile' => $request->mobile,
-        ]);
+        ];
+
+        if ($request->has('visible_on_chat')) {
+            $updateData['visible_on_chat'] = $request->boolean('visible_on_chat');
+        }
+
+        $merchant->update($updateData);
 
         return response()->json(['message' => 'Profile updated successfully.', 'data' => $merchant]);
     }
