@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\File;
 // use App\Filament\Pages\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\PolicyController;
@@ -39,3 +40,19 @@ Route::get('/keycloak/callback', [Controller::class, 'callback']);
 
 
 // Settings::route('/settings', 'settings');
+
+Route::get('/openapi.yaml', function () {
+    $path = base_path('openapi.yaml');
+
+    if (! File::exists($path)) {
+        abort(404, 'OpenAPI spec not found.');
+    }
+
+    return response(File::get($path), 200, [
+        'Content-Type' => 'application/yaml; charset=UTF-8',
+    ]);
+})->name('openapi.yaml');
+
+Route::get('/swagger', function () {
+    return view('swagger');
+})->name('swagger.ui');
