@@ -1,0 +1,1162 @@
+openapi: 3.0.3
+info:
+  title: ChatBizz API
+  version: 1.0.0
+  description: Swagger documentation for all APIs defined in routes/api.php.
+servers:
+  - url: /api
+    description: Laravel API base path
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Driver
+  - name: Orders
+  - name: Cart
+  - name: Addresses
+  - name: Merchant
+  - name: Products
+  - name: Categories
+  - name: Notifications
+  - name: Chat
+  - name: Static Pages
+
+paths:
+  /user:
+    get:
+      tags: [Auth]
+      summary: Get authenticated user
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Logout authenticated user
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/login:
+    post:
+      tags: [Auth, Driver]
+      security: []
+      summary: Driver login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user/login:
+    post:
+      tags: [Auth, Merchant]
+      security: []
+      summary: Merchant Firebase login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /user/verifyOtp:
+    post:
+      tags: [Auth, Merchant]
+      security: []
+      summary: Verify merchant OTP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mobile, otp]
+              properties:
+                mobile:
+                  type: string
+                otp:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /delvery-boy/profile:
+    get:
+      tags: [Driver]
+      summary: Driver profile and dashboard stats
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/orders:
+    get:
+      tags: [Driver, Orders]
+      summary: List driver orders
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/services:
+    get:
+      tags: [Driver]
+      summary: List driver service requests
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/updateStatus:
+    get:
+      tags: [Driver]
+      summary: Toggle driver availability status
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/accept-order:
+    post:
+      tags: [Driver, Orders]
+      summary: Accept and assign driver to order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id]
+              properties:
+                order_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/accept-service:
+    post:
+      tags: [Driver]
+      summary: Accept and assign driver to service
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [service_id]
+              properties:
+                service_id:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/save-driver-device-token:
+    post:
+      tags: [Driver, Notifications]
+      summary: Save driver device token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_token]
+              properties:
+                device_token:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/order/{orderId}:
+    get:
+      tags: [Driver, Orders]
+      summary: Get driver order details
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /delvery-boy/update-order-status:
+    post:
+      tags: [Driver, Orders]
+      summary: Update order status (driver flow)
+      requestBody:
+        $ref: '#/components/requestBodies/OrderStatusUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/update-service-status:
+    post:
+      tags: [Driver]
+      summary: Update service status (driver flow)
+      requestBody:
+        $ref: '#/components/requestBodies/ServiceStatusUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/update-location:
+    post:
+      tags: [Driver]
+      summary: Update live driver location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_id, driver_id, lat, lng]
+              properties:
+                order_id:
+                  type: integer
+                driver_id:
+                  type: integer
+                lat:
+                  type: number
+                  format: float
+                lng:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/orders/{order}/regenerate-otp:
+    post:
+      tags: [Driver, Orders]
+      summary: Regenerate completion OTP for an order
+      parameters:
+        - name: order
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /delvery-boy/delivery-chat-send:
+    post:
+      tags: [Chat]
+      summary: Send delivery chat message (driver-prefixed route)
+      requestBody:
+        $ref: '#/components/requestBodies/DeliveryChatSend'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delivery-chat-send:
+    post:
+      tags: [Chat]
+      summary: Send delivery chat message
+      requestBody:
+        $ref: '#/components/requestBodies/DeliveryChatSend'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /delvery-boy/service-chat-send:
+    post:
+      tags: [Chat]
+      summary: Send service chat message (driver-prefixed route)
+      requestBody:
+        $ref: '#/components/requestBodies/ServiceChatSend'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /service-chat-send:
+    post:
+      tags: [Chat]
+      summary: Send service chat message
+      requestBody:
+        $ref: '#/components/requestBodies/ServiceChatSend'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /order/{orderId}:
+    get:
+      tags: [Orders]
+      summary: Get authenticated user order details
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /cart:
+    post:
+      tags: [Cart]
+      summary: Add product to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [product_id, quantity]
+              properties:
+                product_id:
+                  type: integer
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+    get:
+      tags: [Cart]
+      summary: Get authenticated user cart
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /cart/{cartId}:
+    put:
+      tags: [Cart]
+      summary: Update cart item quantity
+      parameters:
+        - name: cartId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Cart]
+      summary: Remove cart item
+      parameters:
+        - name: cartId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /order:
+    post:
+      tags: [Orders]
+      summary: Create order from cart
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /update-order-status:
+    post:
+      tags: [Orders]
+      summary: Update order status
+      requestBody:
+        $ref: '#/components/requestBodies/OrderStatusUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /update-service-status:
+    post:
+      tags: [Orders]
+      summary: Update service status
+      requestBody:
+        $ref: '#/components/requestBodies/ServiceStatusUpdate'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /orders:
+    post:
+      tags: [Orders]
+      summary: Create order and Razorpay order id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - address_id
+                - contact_name
+                - contact_number
+                - sub_total
+                - delivery_charges
+                - platform_fee
+                - total_amount
+                - shop_id
+                - items
+                - drop_lat
+                - drop_lng
+              properties:
+                user_id:
+                  type: integer
+                address_id:
+                  type: integer
+                contact_name:
+                  type: string
+                contact_number:
+                  type: string
+                sub_total:
+                  type: number
+                delivery_charges:
+                  type: number
+                platform_fee:
+                  type: number
+                total_amount:
+                  type: number
+                shop_id:
+                  type: integer
+                drop_lat:
+                  type: string
+                drop_lng:
+                  type: string
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [product_id, price, quantity]
+                    properties:
+                      product_id:
+                        type: integer
+                      product_name:
+                        type: string
+                      price:
+                        type: number
+                      quantity:
+                        type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    get:
+      tags: [Orders]
+      summary: List authenticated user orders
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /orders/verify-payment:
+    post:
+      tags: [Orders]
+      summary: Verify Razorpay order payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
+              properties:
+                razorpay_order_id:
+                  type: string
+                razorpay_payment_id:
+                  type: string
+                razorpay_signature:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /service-requests:
+    get:
+      tags: [Orders]
+      summary: List authenticated user service requests
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /service-requests/create-with-razorpay:
+    post:
+      tags: [Orders]
+      summary: Create service request with Razorpay order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - user_id
+                - pickup_address
+                - pickup_lat
+                - pickup_long
+                - contact_name
+                - contact_number
+                - amount
+              properties:
+                user_id:
+                  type: integer
+                pickup_address:
+                  type: string
+                pickup_lat:
+                  type: string
+                pickup_long:
+                  type: string
+                contact_name:
+                  type: string
+                contact_number:
+                  type: string
+                amount:
+                  type: number
+                note:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /service-requests/verify-payment:
+    post:
+      tags: [Orders]
+      summary: Verify service payment signature
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
+              properties:
+                razorpay_order_id:
+                  type: string
+                razorpay_payment_id:
+                  type: string
+                razorpay_signature:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /addresses:
+    get:
+      tags: [Addresses]
+      summary: List addresses for authenticated user
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+    post:
+      tags: [Addresses]
+      summary: Create address for authenticated user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressPayload'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /addresses/{id}:
+    put:
+      tags: [Addresses]
+      summary: Update address
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressPayload'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+    delete:
+      tags: [Addresses]
+      summary: Delete address
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /addresses/{id}/primary:
+    put:
+      tags: [Addresses]
+      summary: Mark address as primary
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/add-products:
+    post:
+      tags: [Merchant, Products]
+      summary: Add or update merchant product mappings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [products]
+              properties:
+                products:
+                  type: array
+                  items:
+                    type: object
+                    required: [product_id]
+                    properties:
+                      product_id:
+                        type: integer
+                      stock:
+                        type: integer
+                      price:
+                        type: number
+                      discount:
+                        type: number
+                      description:
+                        type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/products:
+    post:
+      tags: [Merchant, Products]
+      summary: List products for authenticated merchant
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/{merchantId}/products:
+    get:
+      tags: [Merchant, Products]
+      security: []
+      summary: List products by merchant id
+      parameters:
+        - name: merchantId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /categories-with-subcategories:
+    get:
+      tags: [Categories]
+      summary: Categories with subcategories and available products for merchant
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /categories-with-merchants:
+    get:
+      tags: [Categories]
+      security: []
+      summary: Categories with active merchants
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/dashboard:
+    get:
+      tags: [Merchant]
+      summary: Merchant dashboard metrics
+      parameters:
+        - name: recent_limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/orders:
+    get:
+      tags: [Merchant, Orders]
+      summary: Merchant orders list
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/orders/{orderId}:
+    get:
+      tags: [Merchant, Orders]
+      summary: Merchant order details
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /merchant/settlements:
+    get:
+      tags: [Merchant]
+      summary: Merchant settlement orders breakdown
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchant/profile:
+    get:
+      tags: [Merchant]
+      summary: Get authenticated merchant profile
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+    post:
+      tags: [Merchant]
+      summary: Update authenticated merchant profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, mobile]
+              properties:
+                name:
+                  type: string
+                mobile:
+                  type: string
+                visible_on_chat:
+                  type: boolean
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /user/account:
+    delete:
+      tags: [Merchant]
+      summary: Delete authenticated merchant account
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /products:
+    get:
+      tags: [Products]
+      security: []
+      summary: Get all products
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /merchants:
+    get:
+      tags: [Merchant]
+      security: []
+      summary: Get merchants list
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /search-products:
+    get:
+      tags: [Products]
+      security: []
+      summary: Search merchant products with category filters
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: cat_id
+          in: query
+          schema:
+            type: integer
+        - name: subcat_id
+          in: query
+          schema:
+            type: integer
+        - name: merchant_id
+          in: query
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /getCharges:
+    get:
+      tags: [Orders]
+      security: []
+      summary: Get charge settings and merchant coordinates
+      parameters:
+        - name: shopId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /save-device-token:
+    post:
+      tags: [Notifications]
+      summary: Save customer device token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [device_token]
+              properties:
+                device_token:
+                  type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /notify-user:
+    post:
+      tags: [Notifications]
+      summary: Send notification to current user token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body]
+              properties:
+                title:
+                  type: string
+                body:
+                  type: string
+                user_type:
+                  type: string
+                  example: customer
+                data:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /notify-all:
+    post:
+      tags: [Notifications]
+      summary: Broadcast notification by user type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, body]
+              properties:
+                title:
+                  type: string
+                body:
+                  type: string
+                user_type:
+                  type: string
+                data:
+                  type: object
+                  additionalProperties: true
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /static-pages:
+    get:
+      tags: [Static Pages]
+      security: []
+      summary: List static pages
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+
+  /static-pages/{slug}:
+    get:
+      tags: [Static Pages]
+      security: []
+      summary: Get static page by slug
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/Ok'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: integer
+    PerPage:
+      name: per_page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+
+  requestBodies:
+    OrderStatusUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [order_id, status]
+            properties:
+              order_id:
+                type: integer
+              status:
+                type: string
+              otp:
+                type: string
+                description: Required when status is delivered.
+    ServiceStatusUpdate:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [service_id, status]
+            properties:
+              service_id:
+                type: integer
+              status:
+                type: string
+              otp:
+                type: string
+                description: Required when status is completed.
+    DeliveryChatSend:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [order_id, sender_id, receiver_id, message, sender_type]
+            properties:
+              order_id:
+                type: integer
+              sender_id:
+                type: integer
+              receiver_id:
+                type: integer
+              message:
+                type: string
+              sender_type:
+                type: string
+                enum: [user, delivery]
+    ServiceChatSend:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [service_id, sender_id, receiver_id, message, sender_type]
+            properties:
+              service_id:
+                type: integer
+              sender_id:
+                type: integer
+              receiver_id:
+                type: integer
+              message:
+                type: string
+              sender_type:
+                type: string
+                enum: [user, delivery]
+
+  schemas:
+    AddressPayload:
+      type: object
+      required: [address_line_1, city, state, postal_code, country]
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+        latitude:
+          type: number
+          format: float
+          nullable: true
+        longitude:
+          type: number
+          format: float
+          nullable: true
+        is_primary:
+          type: boolean
+
+  responses:
+    Ok:
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
