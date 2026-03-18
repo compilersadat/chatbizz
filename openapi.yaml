@@ -2,12 +2,15 @@ openapi: 3.0.3
 info:
   title: ChatBizz API
   version: 1.0.0
-  description: Swagger documentation for all APIs defined in routes/api.php.
+  description: Swagger documentation for APIs defined in `routes/api.php`.
+
 servers:
   - url: /api
     description: Laravel API base path
+
 security:
   - bearerAuth: []
+
 tags:
   - name: Auth
   - name: Driver
@@ -28,7 +31,9 @@ paths:
       summary: Get authenticated user
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/AuthenticatedUserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /logout:
     post:
@@ -36,7 +41,9 @@ paths:
       summary: Logout authenticated user
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/LogoutResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/login:
     post:
@@ -44,21 +51,10 @@ paths:
       security: []
       summary: Driver login
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [email, password]
-              properties:
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
+        $ref: '#/components/requestBodies/DriverLoginRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverLoginResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -68,18 +64,14 @@ paths:
       security: []
       summary: Merchant Firebase login
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [idToken]
-              properties:
-                idToken:
-                  type: string
+        $ref: '#/components/requestBodies/MerchantFirebaseLoginRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantLoginResponse'
+        '401':
+          $ref: '#/components/responses/MerchantLoginUnauthorizedResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /user/verifyOtp:
     post:
@@ -87,20 +79,10 @@ paths:
       security: []
       summary: Verify merchant OTP
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [mobile, otp]
-              properties:
-                mobile:
-                  type: string
-                otp:
-                  type: string
+        $ref: '#/components/requestBodies/MerchantVerifyOtpRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantOtpVerifiedResponse'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -110,7 +92,11 @@ paths:
       summary: Driver profile and dashboard stats
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /delvery-boy/orders:
     get:
@@ -124,7 +110,9 @@ paths:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverOrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/services:
     get:
@@ -138,7 +126,9 @@ paths:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverServicesResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/updateStatus:
     get:
@@ -146,61 +136,45 @@ paths:
       summary: Toggle driver availability status
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/accept-order:
     post:
       tags: [Driver, Orders]
       summary: Accept and assign driver to order
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [order_id]
-              properties:
-                order_id:
-                  type: integer
+        $ref: '#/components/requestBodies/AcceptOrderRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverAcceptOrderResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/accept-service:
     post:
       tags: [Driver]
       summary: Accept and assign driver to service
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [service_id]
-              properties:
-                service_id:
-                  type: integer
+        $ref: '#/components/requestBodies/AcceptServiceRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverAcceptServiceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/save-driver-device-token:
     post:
       tags: [Driver, Notifications]
       summary: Save driver device token
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [device_token]
-              properties:
-                device_token:
-                  type: string
+        $ref: '#/components/requestBodies/SaveDeviceTokenRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/SaveTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /delvery-boy/order/{orderId}:
     get:
@@ -210,7 +184,7 @@ paths:
         - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverOrderDetailResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -222,7 +196,9 @@ paths:
         $ref: '#/components/requestBodies/OrderStatusUpdate'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/OrderStatusUpdatedResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /delvery-boy/update-service-status:
     post:
@@ -232,33 +208,21 @@ paths:
         $ref: '#/components/requestBodies/ServiceStatusUpdate'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ServiceStatusUpdatedResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /delvery-boy/update-location:
     post:
       tags: [Driver]
       summary: Update live driver location
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [order_id, driver_id, lat, lng]
-              properties:
-                order_id:
-                  type: integer
-                driver_id:
-                  type: integer
-                lat:
-                  type: number
-                  format: float
-                lng:
-                  type: number
-                  format: float
+        $ref: '#/components/requestBodies/DriverLocationUpdateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DriverLocationUpdatedResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /delvery-boy/orders/{order}/regenerate-otp:
     post:
@@ -272,7 +236,7 @@ paths:
             type: integer
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/RegenerateOtpResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
 
@@ -284,7 +248,7 @@ paths:
         $ref: '#/components/requestBodies/DeliveryChatSend'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ChatSendResponse'
 
   /delivery-chat-send:
     post:
@@ -294,7 +258,7 @@ paths:
         $ref: '#/components/requestBodies/DeliveryChatSend'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ChatSendResponse'
 
   /delvery-boy/service-chat-send:
     post:
@@ -304,7 +268,7 @@ paths:
         $ref: '#/components/requestBodies/ServiceChatSend'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ServiceChatSendResponse'
 
   /service-chat-send:
     post:
@@ -314,7 +278,7 @@ paths:
         $ref: '#/components/requestBodies/ServiceChatSend'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ServiceChatSendResponse'
 
   /order/{orderId}:
     get:
@@ -324,7 +288,7 @@ paths:
         - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/UserOrderDetailResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -333,64 +297,42 @@ paths:
       tags: [Cart]
       summary: Add product to cart
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [product_id, quantity]
-              properties:
-                product_id:
-                  type: integer
-                quantity:
-                  type: integer
+        $ref: '#/components/requestBodies/AddToCartRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CartMessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
     get:
       tags: [Cart]
       summary: Get authenticated user cart
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CartListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /cart/{cartId}:
     put:
       tags: [Cart]
       summary: Update cart item quantity
       parameters:
-        - name: cartId
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/CartId'
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [quantity]
-              properties:
-                quantity:
-                  type: integer
+        $ref: '#/components/requestBodies/UpdateCartRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CartMessageResponse'
         '404':
           $ref: '#/components/responses/NotFound'
     delete:
       tags: [Cart]
       summary: Remove cart item
       parameters:
-        - name: cartId
-          in: path
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/CartId'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CartRemoveResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -400,7 +342,11 @@ paths:
       summary: Create order from cart
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CreateOrderFromCartResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
 
   /update-order-status:
     post:
@@ -410,7 +356,9 @@ paths:
         $ref: '#/components/requestBodies/OrderStatusUpdate'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/OrderStatusUpdatedResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /update-service-status:
     post:
@@ -420,105 +368,41 @@ paths:
         $ref: '#/components/requestBodies/ServiceStatusUpdate'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ServiceStatusUpdatedResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /orders:
     post:
       tags: [Orders]
       summary: Create order and Razorpay order id
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-                - address_id
-                - contact_name
-                - contact_number
-                - sub_total
-                - delivery_charges
-                - platform_fee
-                - total_amount
-                - shop_id
-                - items
-                - drop_lat
-                - drop_lng
-              properties:
-                user_id:
-                  type: integer
-                address_id:
-                  type: integer
-                contact_name:
-                  type: string
-                contact_number:
-                  type: string
-                sub_total:
-                  type: number
-                delivery_charges:
-                  type: number
-                platform_fee:
-                  type: number
-                total_amount:
-                  type: number
-                shop_id:
-                  type: integer
-                drop_lat:
-                  type: string
-                drop_lng:
-                  type: string
-                items:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: object
-                    required: [product_id, price, quantity]
-                    properties:
-                      product_id:
-                        type: integer
-                      product_name:
-                        type: string
-                      price:
-                        type: number
-                      quantity:
-                        type: integer
+        $ref: '#/components/requestBodies/CreateRazorpayOrderRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CreateRazorpayOrderResponse'
         '500':
           $ref: '#/components/responses/ServerError'
-
     get:
       tags: [Orders]
       summary: List authenticated user orders
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/UserOrdersResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /orders/verify-payment:
     post:
       tags: [Orders]
       summary: Verify Razorpay order payment
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
-              properties:
-                razorpay_order_id:
-                  type: string
-                razorpay_payment_id:
-                  type: string
-                razorpay_signature:
-                  type: string
+        $ref: '#/components/requestBodies/VerifyPaymentRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/PaymentVerificationResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/PaymentVerificationFailedResponse'
 
   /service-requests:
     get:
@@ -528,46 +412,19 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/UserServiceRequestsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /service-requests/create-with-razorpay:
     post:
       tags: [Orders]
       summary: Create service request with Razorpay order
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - user_id
-                - pickup_address
-                - pickup_lat
-                - pickup_long
-                - contact_name
-                - contact_number
-                - amount
-              properties:
-                user_id:
-                  type: integer
-                pickup_address:
-                  type: string
-                pickup_lat:
-                  type: string
-                pickup_long:
-                  type: string
-                contact_name:
-                  type: string
-                contact_number:
-                  type: string
-                amount:
-                  type: number
-                note:
-                  type: string
+        $ref: '#/components/requestBodies/CreateServiceRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CreateServiceRequestResponse'
         '500':
           $ref: '#/components/responses/ServerError'
 
@@ -576,24 +433,12 @@ paths:
       tags: [Orders]
       summary: Verify service payment signature
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
-              properties:
-                razorpay_order_id:
-                  type: string
-                razorpay_payment_id:
-                  type: string
-                razorpay_signature:
-                  type: string
+        $ref: '#/components/requestBodies/VerifyPaymentRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/PaymentVerificationResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          $ref: '#/components/responses/PaymentVerificationFailedResponse'
 
   /addresses:
     get:
@@ -601,23 +446,15 @@ paths:
       summary: List addresses for authenticated user
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/AddressesResponse'
     post:
       tags: [Addresses]
       summary: Create address for authenticated user
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddressPayload'
+        $ref: '#/components/requestBodies/AddressRequest'
       responses:
         '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
+          $ref: '#/components/responses/AddressResponseCreated'
 
   /addresses/{id}:
     put:
@@ -626,14 +463,10 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Id'
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddressPayload'
+        $ref: '#/components/requestBodies/AddressRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/AddressResponse'
     delete:
       tags: [Addresses]
       summary: Delete address
@@ -641,7 +474,7 @@ paths:
         - $ref: '#/components/parameters/Id'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/AddressDeletedResponse'
 
   /addresses/{id}/primary:
     put:
@@ -651,39 +484,17 @@ paths:
         - $ref: '#/components/parameters/Id'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/AddressResponse'
 
   /merchant/add-products:
     post:
       tags: [Merchant, Products]
       summary: Add or update merchant product mappings
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [products]
-              properties:
-                products:
-                  type: array
-                  items:
-                    type: object
-                    required: [product_id]
-                    properties:
-                      product_id:
-                        type: integer
-                      stock:
-                        type: integer
-                      price:
-                        type: number
-                      discount:
-                        type: number
-                      description:
-                        type: string
+        $ref: '#/components/requestBodies/MerchantAddProductsRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantAddProductsResponse'
 
   /merchant/products:
     post:
@@ -693,7 +504,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantProductsResponse'
 
   /merchant/{merchantId}/products:
     get:
@@ -709,7 +520,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ProductsByMerchantResponse'
 
   /categories-with-subcategories:
     get:
@@ -719,7 +530,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CategoriesWithSubcategoriesResponse'
 
   /categories-with-merchants:
     get:
@@ -734,7 +545,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/CategoriesWithMerchantsResponse'
 
   /merchant/dashboard:
     get:
@@ -748,7 +559,7 @@ paths:
             minimum: 1
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantDashboardResponse'
 
   /merchant/orders:
     get:
@@ -766,7 +577,7 @@ paths:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantOrdersResponse'
 
   /merchant/orders/{orderId}:
     get:
@@ -776,7 +587,7 @@ paths:
         - $ref: '#/components/parameters/OrderId'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantOrderDetailResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -792,7 +603,7 @@ paths:
             minimum: 1
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantSettlementsResponse'
 
   /merchant/profile:
     get:
@@ -800,27 +611,15 @@ paths:
       summary: Get authenticated merchant profile
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantProfileResponse'
     post:
       tags: [Merchant]
       summary: Update authenticated merchant profile
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name, mobile]
-              properties:
-                name:
-                  type: string
-                mobile:
-                  type: string
-                visible_on_chat:
-                  type: boolean
+        $ref: '#/components/requestBodies/MerchantProfileUpdateRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantProfileUpdatedResponse'
 
   /user/account:
     delete:
@@ -828,7 +627,7 @@ paths:
       summary: Delete authenticated merchant account
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/DeleteAccountResponse'
 
   /products:
     get:
@@ -843,7 +642,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/ProductsResponse'
 
   /merchants:
     get:
@@ -858,7 +657,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/MerchantsResponse'
 
   /search-products:
     get:
@@ -885,7 +684,7 @@ paths:
         - $ref: '#/components/parameters/PerPage'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/SearchProductsResponse'
 
   /getCharges:
     get:
@@ -900,76 +699,41 @@ paths:
             type: integer
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/GetChargesResponse'
 
   /save-device-token:
     post:
       tags: [Notifications]
       summary: Save customer device token
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [device_token]
-              properties:
-                device_token:
-                  type: string
+        $ref: '#/components/requestBodies/SaveDeviceTokenRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/SaveTokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
   /notify-user:
     post:
       tags: [Notifications]
       summary: Send notification to current user token
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, body]
-              properties:
-                title:
-                  type: string
-                body:
-                  type: string
-                user_type:
-                  type: string
-                  example: customer
-                data:
-                  type: object
-                  additionalProperties: true
+        $ref: '#/components/requestBodies/NotifyUserRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/NotifyUserResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /notify-all:
     post:
       tags: [Notifications]
       summary: Broadcast notification by user type
       requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [title, body]
-              properties:
-                title:
-                  type: string
-                body:
-                  type: string
-                user_type:
-                  type: string
-                data:
-                  type: object
-                  additionalProperties: true
+        $ref: '#/components/requestBodies/NotifyAllRequest'
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/NotifyAllResponse'
 
   /static-pages:
     get:
@@ -978,7 +742,7 @@ paths:
       summary: List static pages
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/StaticPagesResponse'
 
   /static-pages/{slug}:
     get:
@@ -993,7 +757,7 @@ paths:
             type: string
       responses:
         '200':
-          $ref: '#/components/responses/Ok'
+          $ref: '#/components/responses/StaticPageResponse'
         '404':
           $ref: '#/components/responses/NotFound'
 
@@ -1017,6 +781,12 @@ components:
       required: true
       schema:
         type: integer
+    CartId:
+      name: cartId
+      in: path
+      required: true
+      schema:
+        type: integer
     PerPage:
       name: per_page
       in: query
@@ -1026,6 +796,71 @@ components:
         minimum: 1
 
   requestBodies:
+    DriverLoginRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, password]
+            properties:
+              email:
+                type: string
+                format: email
+              password:
+                type: string
+    MerchantFirebaseLoginRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [idToken]
+            properties:
+              idToken:
+                type: string
+    MerchantVerifyOtpRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [mobile, otp]
+            properties:
+              mobile:
+                type: string
+              otp:
+                type: string
+    AcceptOrderRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [order_id]
+            properties:
+              order_id:
+                type: integer
+    AcceptServiceRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [service_id]
+            properties:
+              service_id:
+                type: integer
+    SaveDeviceTokenRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [device_token]
+            properties:
+              device_token:
+                type: string
     OrderStatusUpdate:
       required: true
       content:
@@ -1040,7 +875,7 @@ components:
                 type: string
               otp:
                 type: string
-                description: Required when status is delivered.
+                description: Required when status is `delivered`.
     ServiceStatusUpdate:
       required: true
       content:
@@ -1055,7 +890,25 @@ components:
                 type: string
               otp:
                 type: string
-                description: Required when status is completed.
+                description: Required when status is `completed`.
+    DriverLocationUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [order_id, driver_id, lat, lng]
+            properties:
+              order_id:
+                type: integer
+              driver_id:
+                type: integer
+              lat:
+                type: number
+                format: float
+              lng:
+                type: number
+                format: float
     DeliveryChatSend:
       required: true
       content:
@@ -1094,8 +947,248 @@ components:
               sender_type:
                 type: string
                 enum: [user, delivery]
+    AddToCartRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [product_id, quantity]
+            properties:
+              product_id:
+                type: integer
+              quantity:
+                type: integer
+    UpdateCartRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [quantity]
+            properties:
+              quantity:
+                type: integer
+    CreateRazorpayOrderRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_id
+              - address_id
+              - contact_name
+              - contact_number
+              - sub_total
+              - delivery_charges
+              - platform_fee
+              - total_amount
+              - shop_id
+              - items
+              - drop_lat
+              - drop_lng
+            properties:
+              user_id:
+                type: integer
+              address_id:
+                type: integer
+              contact_name:
+                type: string
+              contact_number:
+                type: string
+              sub_total:
+                type: number
+              delivery_charges:
+                type: number
+              platform_fee:
+                type: number
+              total_amount:
+                type: number
+              shop_id:
+                type: integer
+              drop_lat:
+                type: string
+              drop_lng:
+                type: string
+              items:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/OrderItemCreateInput'
+    VerifyPaymentRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [razorpay_order_id, razorpay_payment_id, razorpay_signature]
+            properties:
+              razorpay_order_id:
+                type: string
+              razorpay_payment_id:
+                type: string
+              razorpay_signature:
+                type: string
+    CreateServiceRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_id
+              - pickup_address
+              - pickup_lat
+              - pickup_long
+              - contact_name
+              - contact_number
+              - amount
+            properties:
+              user_id:
+                type: integer
+              pickup_address:
+                type: string
+              pickup_lat:
+                type: string
+              pickup_long:
+                type: string
+              contact_name:
+                type: string
+              contact_number:
+                type: string
+              amount:
+                type: number
+              note:
+                type: string
+                nullable: true
+    AddressRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AddressPayload'
+    MerchantAddProductsRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [products]
+            properties:
+              products:
+                type: array
+                items:
+                  type: object
+                  required: [product_id]
+                  properties:
+                    product_id:
+                      type: integer
+                    stock:
+                      type: integer
+                      nullable: true
+                    price:
+                      type: number
+                      nullable: true
+                    discount:
+                      type: number
+                      nullable: true
+                    description:
+                      type: string
+                      nullable: true
+    MerchantProfileUpdateRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name, mobile]
+            properties:
+              name:
+                type: string
+              mobile:
+                type: string
+              visible_on_chat:
+                type: boolean
+    NotifyUserRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [title, body]
+            properties:
+              title:
+                type: string
+              body:
+                type: string
+              user_type:
+                type: string
+                example: customer
+              data:
+                type: object
+                additionalProperties: true
+    NotifyAllRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [title, body]
+            properties:
+              title:
+                type: string
+              body:
+                type: string
+              user_type:
+                type: string
+              data:
+                type: object
+                additionalProperties: true
 
   schemas:
+    GenericObject:
+      type: object
+      additionalProperties: true
+    SimpleMessage:
+      type: object
+      properties:
+        message:
+          type: string
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+    ErrorMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        msg:
+          type: string
+          nullable: true
+        errors:
+          type: object
+          additionalProperties: true
+    AuthenticatedUserResponse:
+      type: object
+      additionalProperties: true
+    Merchant:
+      type: object
+      additionalProperties: true
+    Driver:
+      type: object
+      additionalProperties: true
     AddressPayload:
       type: object
       required: [address_line_1, city, state, postal_code, country]
@@ -1123,40 +1216,1019 @@ components:
           nullable: true
         is_primary:
           type: boolean
+    Address:
+      allOf:
+        - $ref: '#/components/schemas/AddressPayload'
+        - type: object
+          properties:
+            id:
+              type: integer
+            merchant_id:
+              type: integer
+              nullable: true
+            created_at:
+              type: string
+              nullable: true
+            updated_at:
+              type: string
+              nullable: true
+    Product:
+      type: object
+      additionalProperties: true
+    MerchantProductSearchItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        thumbnail:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+        merchant_id:
+          type: integer
+        merchant_name:
+          type: string
+        stock:
+          type: integer
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        discount_price:
+          type: number
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    MerchantProductItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        thumbnail:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+        stock:
+          type: integer
+          nullable: true
+        price:
+          type: number
+          nullable: true
+        discount_price:
+          type: number
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    Category:
+      type: object
+      additionalProperties: true
+    StaticPage:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        content:
+          type: string
+        updated_at:
+          type: string
+          nullable: true
+    Chat:
+      type: object
+      additionalProperties: true
+    Contact:
+      type: object
+      properties:
+        name:
+          type: string
+          nullable: true
+        number:
+          type: string
+          nullable: true
+    UserSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          nullable: true
+        mobile:
+          type: string
+          nullable: true
+    DeliveryPartnerSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          nullable: true
+        mobile:
+          type: string
+          nullable: true
+    OrderListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        merchant_transaction_id:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        sub_total:
+          type: number
+          nullable: true
+        delivery_charges:
+          type: number
+          nullable: true
+        platform_fee:
+          type: number
+          nullable: true
+        total_amount:
+          type: number
+          nullable: true
+        merchant_payment_settled:
+          type: boolean
+          nullable: true
+        rider_payment_settled:
+          type: boolean
+          nullable: true
+        contact:
+          $ref: '#/components/schemas/Contact'
+        items_summary:
+          type: object
+          properties:
+            count:
+              type: integer
+            total_quantity:
+              type: integer
+        placed_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+        delivery_partner:
+          $ref: '#/components/schemas/DeliveryPartnerSummary'
+        customer:
+          $ref: '#/components/schemas/UserSummary'
+        address:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            line_1:
+              type: string
+              nullable: true
+            line_2:
+              type: string
+              nullable: true
+            city:
+              type: string
+              nullable: true
+            state:
+              type: string
+              nullable: true
+            postal_code:
+              type: string
+              nullable: true
+            country:
+              type: string
+              nullable: true
+            latitude:
+              type: number
+              nullable: true
+            longitude:
+              type: number
+              nullable: true
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              product_id:
+                type: integer
+                nullable: true
+              product_name:
+                type: string
+                nullable: true
+              quantity:
+                type: integer
+              price:
+                type: number
+              subtotal:
+                type: number
+    ServiceRequest:
+      type: object
+      additionalProperties: true
+    CartItem:
+      type: object
+      additionalProperties: true
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        per_page:
+          type: integer
+        last_page:
+          type: integer
+        total:
+          type: integer
+        has_more:
+          type: boolean
+    DriverPaginationData:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        last_page:
+          type: integer
+        per_page:
+          type: integer
+        total:
+          type: integer
+        from:
+          type: integer
+          nullable: true
+        to:
+          type: integer
+          nullable: true
+        next_page_url:
+          type: string
+          nullable: true
+        prev_page_url:
+          type: string
+          nullable: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenericObject'
+    PaginatedGenericData:
+      type: object
+      additionalProperties: true
+    OrderItemCreateInput:
+      type: object
+      required: [product_id, price, quantity]
+      properties:
+        product_id:
+          type: integer
+        product_name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+    DashboardRecentOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+        merchant_transaction_id:
+          type: string
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        total_amount:
+          type: number
+        contact_name:
+          type: string
+          nullable: true
+        contact_number:
+          type: string
+          nullable: true
+        placed_at:
+          type: string
+          nullable: true
+        merchant_payment_settled:
+          type: boolean
+        rider_payment_settled:
+          type: boolean
 
   responses:
-    Ok:
-      description: Successful response
+    MessageResponse:
+      description: Successful message response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    LogoutResponse:
+      description: Logout response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    AuthenticatedUserResponse:
+      description: Authenticated user payload
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthenticatedUserResponse'
+    DriverLoginResponse:
+      description: Driver login response
       content:
         application/json:
           schema:
             type: object
-            additionalProperties: true
+            properties:
+              data:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/Driver'
+              token:
+                type: string
+    MerchantLoginResponse:
+      description: Merchant login response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              user:
+                $ref: '#/components/schemas/Merchant'
+              token:
+                type: string
+    MerchantLoginUnauthorizedResponse:
+      description: Invalid Firebase token response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+    MerchantOtpVerifiedResponse:
+      description: Merchant OTP verification response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+              user:
+                $ref: '#/components/schemas/Merchant'
+    DriverProfileResponse:
+      description: Driver profile dashboard response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  pendingCount:
+                    type: integer
+                  completedCount:
+                    type: integer
+                  cancelledCount:
+                    type: integer
+                  upcomingOrders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GenericObject'
+                  totalEarning:
+                    type: number
+                    nullable: true
+                  upcomingServiceRequest:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GenericObject'
+                  pendingServiceCount:
+                    type: integer
+                  completedServiceCount:
+                    type: integer
+                  cancelledServiceCount:
+                    type: integer
+                  totalServiceEarning:
+                    type: number
+                    nullable: true
+    DriverOrdersResponse:
+      description: Paginated driver orders
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/DriverPaginationData'
+    DriverServicesResponse:
+      description: Paginated driver services
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/DriverPaginationData'
+    DriverAcceptOrderResponse:
+      description: Driver accepted order
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    DriverAcceptServiceResponse:
+      description: Driver accepted service
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    SaveTokenResponse:
+      description: Device token saved response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessMessage'
+    DriverOrderDetailResponse:
+      description: Driver order detail response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/GenericObject'
+    OrderStatusUpdatedResponse:
+      description: Order status updated response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    ServiceStatusUpdatedResponse:
+      description: Service status updated response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              old_status:
+                type: string
+                nullable: true
+              new_status:
+                type: string
+                nullable: true
+    DriverLocationUpdatedResponse:
+      description: Driver location updated response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              error:
+                type: string
+                nullable: true
+    RegenerateOtpResponse:
+      description: OTP regenerated response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              otp:
+                type: string
+                nullable: true
+    ChatSendResponse:
+      description: Chat send response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              chat:
+                $ref: '#/components/schemas/Chat'
+    ServiceChatSendResponse:
+      description: Service chat send response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              chat:
+                type: object
+                additionalProperties: true
+    UserOrderDetailResponse:
+      description: Authenticated user order detail response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/GenericObject'
+    CartMessageResponse:
+      description: Cart action response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    CartRemoveResponse:
+      description: Remove cart item response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    CartListResponse:
+      description: Cart items response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/CartItem'
+    CreateOrderFromCartResponse:
+      description: Order created from cart response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    CreateRazorpayOrderResponse:
+      description: Razorpay order created response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              order_id:
+                type: integer
+              razorpay_order_id:
+                type: string
+              amount:
+                type: integer
+              contact_name:
+                type: string
+              contact_number:
+                type: string
+              key_id:
+                type: string
+    PaymentVerificationResponse:
+      description: Payment verification success response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: success
+    PaymentVerificationFailedResponse:
+      description: Payment verification failed response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                example: fail
+    UserOrdersResponse:
+      description: Paginated user orders
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    UserServiceRequestsResponse:
+      description: Paginated user service requests
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    CreateServiceRequestResponse:
+      description: Razorpay service request created response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              service_request_id:
+                type: integer
+              razorpay_order_id:
+                type: string
+              amount:
+                type: integer
+              contact_name:
+                type: string
+              contact_number:
+                type: string
+              key_id:
+                type: string
+    AddressesResponse:
+      description: Address list response
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Address'
+    AddressResponse:
+      description: Address response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Address'
+    AddressResponseCreated:
+      description: Address created response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Address'
+    AddressDeletedResponse:
+      description: Address deleted response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SimpleMessage'
+    MerchantAddProductsResponse:
+      description: Merchant products updated response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessMessage'
+    MerchantProductsResponse:
+      description: Merchant products grouped by categories response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    ProductsByMerchantResponse:
+      description: Products by merchant grouped by categories response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    CategoriesWithSubcategoriesResponse:
+      description: Categories with subcategories response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    CategoriesWithMerchantsResponse:
+      description: Categories with merchants response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    MerchantDashboardResponse:
+      description: Merchant dashboard response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                type: object
+                properties:
+                  totals:
+                    type: object
+                    properties:
+                      orders:
+                        type: integer
+                      orders_today:
+                        type: integer
+                      revenue:
+                        type: number
+                  status_breakdown:
+                    type: object
+                    additionalProperties:
+                      type: integer
+                  settlements:
+                    type: object
+                    properties:
+                      merchant:
+                        type: object
+                        properties:
+                          settled_orders:
+                            type: integer
+                          unsettled_orders:
+                            type: integer
+                          settled_amount:
+                            type: number
+                          unsettled_amount:
+                            type: number
+                      rider:
+                        type: object
+                        properties:
+                          settled_deliveries:
+                            type: integer
+                          unsettled_deliveries:
+                            type: integer
+                          settled_amount:
+                            type: number
+                          unsettled_amount:
+                            type: number
+                  recent_orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DashboardRecentOrder'
+    MerchantOrdersResponse:
+      description: Merchant orders response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrderListItem'
+              meta:
+                $ref: '#/components/schemas/PaginationMeta'
+              links:
+                type: object
+                properties:
+                  next:
+                    type: string
+                    nullable: true
+                  prev:
+                    type: string
+                    nullable: true
+    MerchantOrderDetailResponse:
+      description: Merchant order detail response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/OrderListItem'
+    MerchantSettlementsResponse:
+      description: Merchant settlements response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                type: object
+                properties:
+                  limit:
+                    type: integer
+                  settled:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      total_amount:
+                        type: number
+                      orders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderListItem'
+                  unsettled:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      total_amount:
+                        type: number
+                      orders:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/OrderListItem'
+    MerchantProfileResponse:
+      description: Merchant profile response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/Merchant'
+    MerchantProfileUpdatedResponse:
+      description: Merchant profile updated response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                $ref: '#/components/schemas/Merchant'
+    DeleteAccountResponse:
+      description: Account deletion response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessMessage'
+    ProductsResponse:
+      description: Product list response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    MerchantsResponse:
+      description: Merchant list response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    SearchProductsResponse:
+      description: Search products response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedGenericData'
+    GetChargesResponse:
+      description: Delivery charges response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              delivery_charges:
+                type: string
+                nullable: true
+              platform_fee:
+                type: string
+                nullable: true
+              shop_lat:
+                type: string
+                nullable: true
+              shop_long:
+                type: string
+                nullable: true
+    NotifyUserResponse:
+      description: Notification sent response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessMessage'
+    NotifyAllResponse:
+      description: Broadcast notification response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessMessage'
+    StaticPagesResponse:
+      description: Static pages response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StaticPage'
+    StaticPageResponse:
+      description: Static page response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref: '#/components/schemas/StaticPage'
     BadRequest:
       description: Bad request
       content:
         application/json:
           schema:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ErrorMessage'
     Unauthorized:
       description: Unauthorized
       content:
         application/json:
           schema:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ErrorMessage'
     NotFound:
       description: Not found
       content:
         application/json:
           schema:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ErrorMessage'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
     ServerError:
       description: Internal server error
       content:
         application/json:
           schema:
-            type: object
-            additionalProperties: true
+            $ref: '#/components/schemas/ErrorMessage'
