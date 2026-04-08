@@ -70,7 +70,7 @@ class PaymentController extends Controller
                 'platform_fee' => $request->platform_fee,
                 'total_amount' => $request->total_amount,
                 'merchant_transaction_id' => $merchantTransactionId,
-                'status' => 'payment_pending',
+                'status' => 'pending',
                 'payment_status' => 'pending',
                 'delivery_partner_id' => null,
                 'shop_id' => $request->shop_id,
@@ -200,7 +200,7 @@ class PaymentController extends Controller
 
             if (! $isPaid) {
                 $order->payment_status = 'failed';
-                $order->status = 'payment_failed';
+                $order->status = 'failed';
                 $order->cashfree_order_status = $cfOrder['order_status'] ?? null;
                 $order->save();
 
@@ -327,7 +327,7 @@ class PaymentController extends Controller
                 }
             } elseif (in_array($paymentStatus, ['FAILED', 'CANCELLED', 'USER_DROPPED'])) {
                 $order->payment_status = 'failed';
-                $order->status = 'payment_failed';
+                $order->status = 'failed';
                 $order->cashfree_order_status = $paymentStatus;
                 $order->save();
             }
