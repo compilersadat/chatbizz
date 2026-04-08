@@ -41,6 +41,7 @@ return [
         'payout' => [
             'client_id' => env('CASHFREE_PAYOUT_CLIENT_ID'),
             'secret_key' => env('CASHFREE_PAYOUT_CLIENT_SECRET'),
+            'api_version' => env('CASHFREE_PAYOUT_API_VERSION', '2024-01-01'),
             'base_url' => env('CASHFREE_PAYOUT_BASE_URL', 'https://sandbox.cashfree.com/payout'),
         ],
     ],
