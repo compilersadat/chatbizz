@@ -22,6 +22,7 @@ class CashFreeService
         return [
             'x-client-id'     => config('services.cashfree.payout.client_id'),
             'x-client-secret' => config('services.cashfree.payout.secret_key'),
+            'x-api-version'   => config('services.cashfree.payout.api_version', '2024-01-01'),
             'accept'          => 'application/json',
             'content-type'    => 'application/json',
         ];
