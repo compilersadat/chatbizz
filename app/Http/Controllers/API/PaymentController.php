@@ -9,16 +9,16 @@ use App\Models\MerchantAccount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Rider;
-use App\Services\CashfreeService;
+use App\Services\CashFreeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
-    protected CashfreeService $cashfreeService;
+    protected CashFreeService $cashfreeService;
 
-    public function __construct(CashfreeService $cashfreeService)
+    public function __construct(CashFreeService $cashfreeService)
     {
         $this->cashfreeService = $cashfreeService;
     }
