@@ -70,4 +70,9 @@ public function scopeAssociative($query)
 {
     return $query->where('merchant_type', 'associative'); // adjust condition
 }
+
+public function merchantAccount()
+{
+    return $this->hasOne(MerchantAccount::class, 'user_id');
+}
 }

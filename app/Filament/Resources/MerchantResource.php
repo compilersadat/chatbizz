@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Role;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\Hash;
 use Filament\Forms\Components\View;
+use Filament\Forms\Components\Section;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -109,6 +110,64 @@ class MerchantResource extends Resource
             ->rule('regex:/^fa_[A-Za-z0-9]+$/')
             ->unique(ignoreRecord: true)
             ->maxLength(191),
+
+        Section::make('Payment Information')
+            ->description('Store merchant payout details in the linked merchant account.')
+            ->relationship('merchantAccount')
+            ->schema([
+                TextInput::make('account_holder_name')
+                    ->label('Account Holder Name')
+                    ->required()
+                    ->maxLength(255),
+
+                TextInput::make('bank_account_number')
+                    ->label('Bank Account Number')
+                    ->required()
+                    ->maxLength(255),
+
+                TextInput::make('ifsc_code')
+                    ->label('IFSC Code')
+                    ->required()
+                    ->maxLength(255),
+
+                TextInput::make('bank_name')
+                    ->label('Bank Name')
+                    ->maxLength(255),
+
+                TextInput::make('bank_branch')
+                    ->label('Bank Branch')
+                    ->maxLength(255),
+
+                TextInput::make('razorpay_contact_id')
+                    ->label('Merchant Account Razorpay Contact ID')
+                    ->placeholder('cont_xxxxxxxxxxxxx')
+                    ->rule('regex:/^cont_[A-Za-z0-9]+$/')
+                    ->maxLength(191),
+
+                TextInput::make('razorpay_fund_account_id')
+                    ->label('Merchant Account Razorpay Fund Account ID')
+                    ->placeholder('fa_xxxxxxxxxxxxx')
+                    ->rule('regex:/^fa_[A-Za-z0-9]+$/')
+                    ->maxLength(191),
+
+                TextInput::make('razorpay_virtual_account_id')
+                    ->label('Merchant Account Razorpay Virtual Account ID')
+                    ->maxLength(191),
+
+                Forms\Components\Select::make('verification_status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'verified' => 'Verified',
+                        'failed' => 'Failed',
+                    ])
+                    ->default('pending'),
+
+                Forms\Components\Textarea::make('kyc_notes')
+                    ->label('KYC Notes')
+                    ->rows(3)
+                    ->columnSpanFull(),
+            ])
+            ->columns(2),
 
         View::make('components.location-picker')
             ->columnSpanFull()
