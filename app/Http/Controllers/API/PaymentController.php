@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\API\Controllers;
 
 use App\Models\DeviceToken;
 use App\Models\Merchant;
