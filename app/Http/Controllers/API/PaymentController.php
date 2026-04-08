@@ -409,7 +409,7 @@ class PaymentController extends Controller
         $transfer = $this->cashfreeService->createTransfer([
             'transfer_id' => $transferId,
             'transfer_amount' => round((float) $order->merchant_amount, 2),
-            'transfer_mode' => 'IMPS',
+            'transfer_mode' => 'imps',
             'beneficiary_details' => [
                 'beneficiary_id' => $beneficiary['beneficiary_id'] ?? $beneficiaryId,
             ],
@@ -462,7 +462,7 @@ class PaymentController extends Controller
                 ],
             ];
 
-            $transferMode = 'UPI';
+            $transferMode = 'upi';
         } else {
             if (empty($rider->acc_number) || empty($rider->ifsc)) {
                 throw new \Exception('Rider payout details are incomplete.');
@@ -481,7 +481,7 @@ class PaymentController extends Controller
                 ],
             ];
 
-            $transferMode = 'IMPS';
+            $transferMode = 'imps';
         }
 
         $beneficiary = $this->cashfreeService->createOrGetBeneficiary($beneficiaryPayload);
