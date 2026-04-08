@@ -4,7 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
-class CashfreeService
+class CashFreeService
 {
     public function pgHeaders(): array
     {
