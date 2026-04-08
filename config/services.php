@@ -43,6 +43,12 @@ return [
             'secret_key' => env('CASHFREE_PAYOUT_CLIENT_SECRET'),
             'base_url' => env('CASHFREE_PAYOUT_BASE_URL', 'https://sandbox.cashfree.com/payout'),
         ],
+        'ppi' => [
+            'client_id' => env('CASHFREE_PPI_CLIENT_ID', env('CASHFREE_PAYOUT_CLIENT_ID')),
+            'secret_key' => env('CASHFREE_PPI_CLIENT_SECRET', env('CASHFREE_PAYOUT_CLIENT_SECRET')),
+            'api_version' => env('CASHFREE_PPI_API_VERSION', '2025-11-01'),
+            'base_url' => env('CASHFREE_PPI_BASE_URL', 'https://sandbox.cashfree.com/ppi'),
+        ],
     ],
 
 ];
