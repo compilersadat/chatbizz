@@ -390,6 +390,7 @@ class PaymentController extends Controller
         $beneficiaryId = 'merchant_' . $merchant->id;
 
         $beneficiary = $this->cashfreeService->createOrGetBeneficiary([
+            'user_id' => 'merchant_' . $merchant->id,
             'beneficiary_id' => $beneficiaryId,
             'beneficiary_name' => $merchantAccount->account_holder_name ?: $merchant->name,
             'beneficiary_instrument_details' => [
@@ -451,6 +452,7 @@ class PaymentController extends Controller
 
         if (! empty($rider->upi_id)) {
             $beneficiaryPayload = [
+                'user_id' => 'rider_' . $rider->id,
                 'beneficiary_id' => $beneficiaryId,
                 'beneficiary_name' => $rider->receipt_name ?: $rider->title,
                 'beneficiary_instrument_details' => [
@@ -469,6 +471,7 @@ class PaymentController extends Controller
             }
 
             $beneficiaryPayload = [
+                'user_id' => 'rider_' . $rider->id,
                 'beneficiary_id' => $beneficiaryId,
                 'beneficiary_name' => $rider->receipt_name ?: $rider->title,
                 'beneficiary_instrument_details' => [
