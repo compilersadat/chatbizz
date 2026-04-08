@@ -30,5 +30,19 @@ return [
         'secret' => env('AWS_SECRET_ACCESS_KEY'),
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
+    'cashfree' => [
+        'env' => env('CASHFREE_ENV', 'sandbox'),
+        'pg' => [
+            'client_id' => env('CASHFREE_APP_ID'),
+            'secret_key' => env('CASHFREE_SECRET_KEY'),
+            'api_version' => env('CASHFREE_API_VERSION', '2023-08-01'),
+            'base_url' => env('CASHFREE_PG_BASE_URL', 'https://sandbox.cashfree.com/pg'),
+        ],
+        'payout' => [
+            'client_id' => env('CASHFREE_PAYOUT_CLIENT_ID'),
+            'secret_key' => env('CASHFREE_PAYOUT_CLIENT_SECRET'),
+            'base_url' => env('CASHFREE_PAYOUT_BASE_URL', 'https://sandbox.cashfree.com/payout'),
+        ],
+    ],
 
 ];

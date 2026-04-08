@@ -12,6 +12,7 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\StaticPageController;
+use App\Http\Controllers\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -112,7 +113,10 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::post('/merchant/profile', [MerchantController::class, 'updateProfile']);
      Route::delete('/user/account', [MerchantController::class, 'deleteAccount']);
 
-
+    Route::post('/payments/cashfree/create-order', [PaymentController::class, 'createWithCashfreeOrder']);
+    Route::post('/payments/cashfree/verify', [PaymentController::class, 'verifyPayment']);
+    Route::post('/payments/cashfree/webhook', [PaymentController::class, 'cashfreeWebhook']);
+    Route::post('/orders/{orderId}/mark-delivered', [PaymentController::class, 'markDelivered']);
 });
 
 Route::post('/delvery-boy/login', [DriverAuthController::class, 'login']);

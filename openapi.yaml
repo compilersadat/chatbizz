@@ -15,6 +15,7 @@ tags:
   - name: Auth
   - name: Driver
   - name: Orders
+  - name: Payments
   - name: Cart
   - name: Addresses
   - name: Merchant
@@ -439,6 +440,66 @@ paths:
           $ref: '#/components/responses/PaymentVerificationResponse'
         '400':
           $ref: '#/components/responses/PaymentVerificationFailedResponse'
+
+  /payments/cashfree/create-order:
+    post:
+      tags: [Orders, Payments]
+      summary: Create order and Cashfree payment session
+      requestBody:
+        $ref: '#/components/requestBodies/CreateCashfreeOrderRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CreateCashfreeOrderResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/CashfreeActionFailedResponse'
+
+  /payments/cashfree/verify:
+    post:
+      tags: [Orders, Payments]
+      summary: Verify Cashfree payment for an order
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyCashfreePaymentRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerifyCashfreePaymentResponse'
+        '400':
+          $ref: '#/components/responses/CashfreePaymentNotSuccessfulResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/CashfreeActionFailedResponse'
+
+  /payments/cashfree/webhook:
+    post:
+      tags: [Payments]
+      summary: Process Cashfree payment webhook
+      requestBody:
+        $ref: '#/components/requestBodies/CashfreeWebhookRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/CashfreeWebhookResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/CashfreeInvalidWebhookResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/CashfreeActionFailedResponse'
+
+  /orders/{orderId}/mark-delivered:
+    post:
+      tags: [Orders, Payments]
+      summary: Mark order as delivered and trigger rider payout
+      parameters:
+        - $ref: '#/components/parameters/OrderId'
+      responses:
+        '200':
+          $ref: '#/components/responses/MarkDeliveredResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /addresses:
     get:
@@ -1062,6 +1123,92 @@ components:
               note:
                 type: string
                 nullable: true
+    CreateCashfreeOrderRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - user_id
+              - address_id
+              - contact_name
+              - contact_number
+              - sub_total
+              - delivery_charges
+              - platform_fee
+              - total_amount
+              - shop_id
+              - items
+              - drop_lat
+              - drop_lng
+            properties:
+              user_id:
+                type: integer
+              address_id:
+                type: integer
+              contact_name:
+                type: string
+              contact_number:
+                type: string
+              email:
+                type: string
+                format: email
+                nullable: true
+              sub_total:
+                type: number
+              delivery_charges:
+                type: number
+              platform_fee:
+                type: number
+              total_amount:
+                type: number
+              shop_id:
+                type: integer
+              drop_lat:
+                type: string
+              drop_lng:
+                type: string
+              items:
+                type: array
+                minItems: 1
+                items:
+                  $ref: '#/components/schemas/OrderItemCreateInput'
+    VerifyCashfreePaymentRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [cashfree_order_id]
+            properties:
+              cashfree_order_id:
+                type: string
+    CashfreeWebhookRequest:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                nullable: true
+              data:
+                type: object
+                properties:
+                  order:
+                    type: object
+                    properties:
+                      order_id:
+                        type: string
+                  payment:
+                    type: object
+                    properties:
+                      payment_status:
+                        type: string
+                      cf_payment_id:
+                        type: string
     AddressRequest:
       required: true
       content:
@@ -1825,6 +1972,30 @@ components:
                 type: string
               key_id:
                 type: string
+    CreateCashfreeOrderResponse:
+      description: Cashfree order created response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              order_id:
+                type: integer
+              cashfree_order_id:
+                type: string
+              payment_session_id:
+                type: string
+                nullable: true
+              order_amount:
+                type: number
+              currency:
+                type: string
+                example: INR
+              environment:
+                type: string
+                example: sandbox
     PaymentVerificationResponse:
       description: Payment verification success response
       content:
@@ -1845,6 +2016,81 @@ components:
               status:
                 type: string
                 example: fail
+    VerifyCashfreePaymentResponse:
+      description: Cashfree payment verification response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              payment_id:
+                type: string
+                nullable: true
+              status:
+                type: string
+                nullable: true
+              cashfree_order_status:
+                type: string
+                nullable: true
+    CashfreeWebhookResponse:
+      description: Cashfree webhook processed response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+                nullable: true
+    CashfreeInvalidWebhookResponse:
+      description: Invalid Cashfree webhook signature response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+                example: Invalid webhook signature
+    CashfreePaymentNotSuccessfulResponse:
+      description: Cashfree payment verification returned non-paid status
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+              cashfree_order_status:
+                type: string
+                nullable: true
+    MarkDeliveredResponse:
+      description: Order delivered and payout trigger response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              message:
+                type: string
+    CashfreeActionFailedResponse:
+      description: Cashfree action failed response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorMessage'
     UserOrdersResponse:
       description: Paginated user orders
       content:
