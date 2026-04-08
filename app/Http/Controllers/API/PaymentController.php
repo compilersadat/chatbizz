@@ -2,6 +2,7 @@
 
 namespace App\Http\API\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Models\Merchant;
 use App\Models\MerchantAccount;
