@@ -12,7 +12,7 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\StaticPageController;
-use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\API\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
