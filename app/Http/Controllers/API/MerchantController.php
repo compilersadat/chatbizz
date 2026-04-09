@@ -69,7 +69,7 @@ class MerchantController extends Controller
                 $message = 'Registration successful (new user).';
             }
 
-            $this->syncMerchantToFirestore($user);
+            $this->syncMerchantToFirestore($user, false);
 
             $token = $user->createToken('mobile-login')->plainTextToken;
             return response()->json(['message' => $message, 'user' => $user,'token' => $token]);
@@ -83,7 +83,7 @@ class MerchantController extends Controller
         }
     }
 
-    protected function syncMerchantToFirestore(Merchant $merchant): void
+    protected function syncMerchantToFirestore(Merchant $merchant, bool $forceUpdate = false): void
     {
         try {
             $firestore = FirebaseUserService::firestore()->database();
@@ -101,6 +101,17 @@ class MerchantController extends Controller
 
             foreach ($existingUser as $document) {
                 if ($document->exists()) {
+                    if (! $forceUpdate) {
+                        return;
+                    }
+
+                    $document->reference()->set([
+                        'name' => $merchant->name,
+                        'mobile' => $mobile,
+                        'merchant_type' => $merchant->merchant_type,
+                        'visible_on_chat' => (bool) $merchant->visible_on_chat,
+                    ], ['merge' => true]);
+
                     return;
                 }
             }
@@ -263,6 +274,9 @@ class MerchantController extends Controller
         }
 
         $merchant->update($updateData);
+
+        $merchant->refresh();
+        $this->syncMerchantToFirestore($merchant, true);
 
         return response()->json(['message' => 'Profile updated successfully.', 'data' => $merchant]);
     }
