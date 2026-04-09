@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\FirebaseUserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\Merchant;
@@ -12,6 +13,7 @@ use App\Models\MerchantProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MerchantController extends Controller
 {
@@ -66,6 +68,9 @@ class MerchantController extends Controller
                 );
                 $message = 'Registration successful (new user).';
             }
+
+            $this->syncMerchantToFirestore($user);
+
             $token = $user->createToken('mobile-login')->plainTextToken;
             return response()->json(['message' => $message, 'user' => $user,'token' => $token]);
 
@@ -75,6 +80,46 @@ class MerchantController extends Controller
             return response()->json(['error' => 'Firebase error: ' . $e->getMessage()], 500);
         } catch (\Throwable $e) {
             return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
+        }
+    }
+
+    protected function syncMerchantToFirestore(Merchant $merchant): void
+    {
+        try {
+            $firestore = FirebaseUserService::firestore()->database();
+            $mobile = $merchant->mobile;
+
+            if (empty($mobile)) {
+                return;
+            }
+
+            $existingUser = $firestore
+                ->collection('users')
+                ->where('mobile', '=', $mobile)
+                ->limit(1)
+                ->documents();
+
+            foreach ($existingUser as $document) {
+                if ($document->exists()) {
+                    return;
+                }
+            }
+
+            $firestore
+                ->collection('users')
+                ->document((string) $merchant->id)
+                ->set([
+                    'name' => $merchant->name,
+                    'mobile' => $mobile,
+                    'merchant_type' => $merchant->merchant_type,
+                    'visible_on_chat' => (bool) $merchant->visible_on_chat,
+                ], ['merge' => true]);
+        } catch (\Throwable $e) {
+            Log::warning('Merchant Firestore sync failed after Firebase login', [
+                'merchant_id' => $merchant->id,
+                'mobile' => $merchant->mobile,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
     
