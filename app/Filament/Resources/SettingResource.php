@@ -41,7 +41,6 @@ class SettingResource extends Resource
                     ->required(),
                     FileUpload::make('weblogo')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('settings')
                     ->required()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
@@ -49,9 +48,7 @@ class SettingResource extends Resource
                         $path = 'settings/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }

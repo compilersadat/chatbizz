@@ -86,7 +86,6 @@ class RiderResource extends Resource
                             ->numeric(),
                         FileUpload::make('rimg')->label('Deliver Boy Image')
                             ->disk('s3')
-                            ->visibility('public')
                             ->required()
                             ->directory('riders')
                             ->columnSpanFull()
@@ -95,9 +94,7 @@ class RiderResource extends Resource
                                 $path = 'riders/' . $filename;
 
                                 $stream = $file->readStream();
-                                $options = ['visibility' => 'public'];
-
-                                Storage::disk('s3')->put($path, $stream, $options);
+                                Storage::disk('s3')->put($path, $stream);
                                 if (is_resource($stream)) {
                                     fclose($stream);
                                 }

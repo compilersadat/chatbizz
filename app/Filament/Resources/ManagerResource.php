@@ -37,7 +37,6 @@ class ManagerResource extends Resource
                 FileUpload::make('img')
                     ->label('Zone Manager Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('managers')
                     ->required()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
@@ -45,9 +44,7 @@ class ManagerResource extends Resource
                         $path = 'managers/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }

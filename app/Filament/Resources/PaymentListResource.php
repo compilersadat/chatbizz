@@ -41,7 +41,6 @@ class PaymentListResource extends Resource
                 FileUpload::make('img')
                     ->label('Payment Gateway Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('payment-list')
                     ->required()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
@@ -49,9 +48,7 @@ class PaymentListResource extends Resource
                         $path = 'payment-list/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }
