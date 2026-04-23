@@ -10,6 +10,7 @@ use App\Models\MerchantAccount;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Rider;
+use App\Models\ServiceRequest;
 use App\Services\CashFreeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -257,6 +258,172 @@ class PaymentController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Payment verification failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function createServiceWithCashfreeOrder(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'pickup_address' => 'required|string',
+            'pickup_lat' => 'required|string',
+            'pickup_long' => 'required|string',
+            'contact_name' => 'required|string',
+            'contact_number' => 'required|string',
+            'email' => 'nullable|email',
+            'amount' => 'required|numeric',
+            'note' => 'nullable|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $merchantTransactionId = 'SRV_' . now()->format('YmdHis') . '_' . mt_rand(1000, 9999);
+
+            $service = ServiceRequest::create([
+                'user_id' => $request->user_id,
+                'pickup_address' => $request->pickup_address,
+                'pickup_lat' => $request->pickup_lat,
+                'pickup_long' => $request->pickup_long,
+                'contact_name' => $request->contact_name,
+                'contact_number' => $request->contact_number,
+                'note' => $request->note,
+                'status' => 'pending',
+                'payment_status' => 'pending',
+                'amount' => $request->amount,
+                'payment_gateway' => 'cashfree',
+            ]);
+
+            $cfPayload = [
+                'order_id' => $merchantTransactionId,
+                'order_amount' => round((float) $request->amount, 2),
+                'order_currency' => 'INR',
+                'customer_details' => [
+                    'customer_id' => (string) $request->user_id,
+                    'customer_name' => $request->contact_name,
+                    'customer_email' => $request->email ?: ('service' . $request->user_id . '@example.com'),
+                    'customer_phone' => $request->contact_number,
+                ],
+                'order_note' => 'Service request #' . $service->id,
+                'order_meta' => [
+                    'return_url' => config('app.url') . '/cashfree/service-return?order_id={order_id}',
+                ],
+            ];
+
+            $cfResponse = $this->cashfreeService->createOrder($cfPayload);
+
+            $service->cashfree_order_id = $cfResponse['order_id'] ?? $merchantTransactionId;
+            $service->cashfree_payment_session_id = $cfResponse['payment_session_id'] ?? null;
+            $service->cashfree_order_status = $cfResponse['order_status'] ?? 'ACTIVE';
+            $service->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'service_request_id' => $service->id,
+                'cashfree_order_id' => $service->cashfree_order_id,
+                'payment_session_id' => $service->cashfree_payment_session_id,
+                'order_amount' => (float) $service->amount,
+                'currency' => 'INR',
+                'environment' => config('services.cashfree.env', 'sandbox'),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Cashfree service order creation failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Service request creation failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function verifyServicePayment(Request $request)
+    {
+        $request->validate([
+            'cashfree_order_id' => 'required|string',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $service = ServiceRequest::where('cashfree_order_id', $request->cashfree_order_id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($service->payment_status === 'paid') {
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment already verified',
+                    'status' => $service->status,
+                ]);
+            }
+
+            $cfOrder = $this->cashfreeService->getOrder($service->cashfree_order_id);
+            $payments = $this->cashfreeService->getOrderPayments($service->cashfree_order_id);
+
+            $successfulPayment = null;
+
+            if (is_array($payments)) {
+                foreach ($payments as $payment) {
+                    if (($payment['payment_status'] ?? null) === 'SUCCESS') {
+                        $successfulPayment = $payment;
+                        break;
+                    }
+                }
+            }
+
+            $isPaid = (($cfOrder['order_status'] ?? null) === 'PAID') || ! empty($successfulPayment);
+
+            if (! $isPaid) {
+                $service->payment_status = 'failed';
+                $service->status = 'cancelled';
+                $service->cashfree_order_status = $cfOrder['order_status'] ?? null;
+                $service->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment not successful',
+                    'cashfree_order_status' => $cfOrder['order_status'] ?? null,
+                ], 400);
+            }
+
+            $service->payment_status = 'paid';
+            $service->status = 'pending';
+            $service->cashfree_order_status = $cfOrder['order_status'] ?? 'PAID';
+            $service->payment_gateway_id = $successfulPayment['cf_payment_id'] ?? null;
+            $service->payment_time = now();
+            $service->paid_at = now();
+            $service->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Service payment verified successfully',
+                'payment_id' => $service->payment_gateway_id,
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Cashfree service verify payment failed', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Service payment verification failed',
                 'error' => $e->getMessage(),
             ], 500);
         }

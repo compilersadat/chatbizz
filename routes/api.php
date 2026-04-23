@@ -102,8 +102,10 @@ Route::middleware('auth:sanctum')->group(function () {
      Route::get('/merchant/orders/{orderId}', [MerchantController::class, 'orderDetails']);
      Route::get('/merchant/settlements', [MerchantController::class, 'settlementOrders']);
 
-     Route::post('/service-requests/create-with-razorpay', [OrderController::class, 'createServiceWithRazorpayOrder']);
-     Route::post('/service-requests/verify-payment', [OrderController::class, 'verifyServicePayment']);
+     Route::post('/payments/cashfree/service-requests/create-order', [PaymentController::class, 'createServiceWithCashfreeOrder']);
+     Route::post('/payments/cashfree/service-requests/verify', [PaymentController::class, 'verifyServicePayment']);
+     Route::post('/service-requests/create-with-razorpay', [PaymentController::class, 'createServiceWithCashfreeOrder']);
+     Route::post('/service-requests/verify-payment', [PaymentController::class, 'verifyServicePayment']);
 
      Route::post('save-device-token', [NotificationController::class, 'saveToken']);
      Route::post('/notify-user',       [NotificationController::class, 'notifyUser']);
