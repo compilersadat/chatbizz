@@ -9,17 +9,26 @@ use App\Models\Cart;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Models\OrderItem;
 use Razorpay\Api\Api;
 use App\Models\Merchant;
+use App\Models\Rider;
 use App\Models\ServiceRequest;
 use App\Helpers\FcmHelper;
 use App\Models\DeviceToken;
+use App\Services\CashFreeService;
 
 
 class OrderController extends Controller
 {
-    //
+    protected CashFreeService $cashfreeService;
+
+    public function __construct(CashFreeService $cashfreeService)
+    {
+        $this->cashfreeService = $cashfreeService;
+    }
+
     public function orders(Request $request)
     {
      $data["orders"] = Order::where('rid',$request->user()->id)->where('o_status',$request->status)->simplePaginate(10);
@@ -62,6 +71,28 @@ class OrderController extends Controller
     // Update status
     $order->status = $newStatus;
     $order->save();
+
+    $payoutTriggered = false;
+    $payoutError = null;
+
+    if (
+        $newStatus === 'delivered'
+        && $order->payment_status === 'paid'
+        && ! empty($order->delivery_partner_id)
+    ) {
+        try {
+            $this->triggerOrderDeliveryPayout($order);
+            $payoutTriggered = true;
+        } catch (\Throwable $e) {
+            $payoutError = $e->getMessage();
+
+            Log::error('Order delivery payout failed', [
+                'order_id' => $order->id,
+                'delivery_partner_id' => $order->delivery_partner_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     // Notification texts
     $userText = '';
@@ -134,7 +165,11 @@ class OrderController extends Controller
         }
     }
 
-    return response()->json(['message' => 'Order updated & notifications sent.']);
+    return response()->json([
+        'message' => 'Order updated & notifications sent.',
+        'delivery_payout_triggered' => $payoutTriggered,
+        'delivery_payout_error' => $payoutError,
+    ]);
 }
 
 
@@ -173,6 +208,28 @@ public function changeServiceStatus(Request $request)
     // Update status
     $service->status = $newStatus;
     $service->save();
+
+    $payoutTriggered = false;
+    $payoutError = null;
+
+    if (
+        $newStatus === 'completed'
+        && $service->payment_status === 'paid'
+        && ! empty($service->delivery_partner_id)
+    ) {
+        try {
+            $this->triggerServiceDeliveryPayout($service);
+            $payoutTriggered = true;
+        } catch (\Throwable $e) {
+            $payoutError = $e->getMessage();
+
+            Log::error('Service delivery payout failed', [
+                'service_request_id' => $service->id,
+                'delivery_partner_id' => $service->delivery_partner_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
 
     // Notification templates
     $userTitle   = 'Service Update';
@@ -221,8 +278,8 @@ public function changeServiceStatus(Request $request)
     }
 
     // Send FCM to PROVIDER
-    if ($service->provider_id) {
-        $providerToken = DeviceToken::where('user_id', $service->provider_id)
+    if ($service->delivery_partner_id) {
+        $providerToken = DeviceToken::where('user_id', $service->delivery_partner_id)
             ->where('user_type', 'driver')
             ->value('device_token');
 
@@ -245,6 +302,8 @@ public function changeServiceStatus(Request $request)
         'message' => 'Service updated & notifications sent.',
         'old_status' => $oldStatus,
         'new_status' => $newStatus,
+        'delivery_payout_triggered' => $payoutTriggered,
+        'delivery_payout_error' => $payoutError,
     ]);
 }
 
@@ -534,91 +593,6 @@ public function userServiceRequests(Request $request)
     ]);
 }
 
-public function createServiceWithRazorpayOrder(Request $request)
-{
-    $request->validate([
-        'user_id'        => 'required|integer',
-        'pickup_address' => 'required|string',
-        'pickup_lat'     => 'required|string',
-        'pickup_long'    => 'required|string',
-        'contact_name'   => 'required|string',
-        'contact_number' => 'required|string',
-        'amount'         => 'required|numeric',
-        'note'           => 'nullable|string',
-    ]);
-
-    $transactionId = uniqid('SERVICE_');
-
-    DB::beginTransaction();
-    try {
-        $service = ServiceRequest::create([
-            'user_id'        => $request->user_id,
-            'pickup_address' => $request->pickup_address,
-            'pickup_lat'     => $request->pickup_lat,
-            'pickup_long'    => $request->pickup_long,
-            'contact_name'   => $request->contact_name,
-            'contact_number' => $request->contact_number,
-            'note'           => $request->note,
-            'status'         => 'pending',
-            'amount'         => $request->amount,
-        ]);
-
-        // Razorpay Order creation
-        $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
-        $razorpayOrder = $api->order->create([
-            'receipt'         => $transactionId,
-            'amount'          => intval($request->amount * 100), // paise
-            'currency'        => 'INR',
-            'payment_capture' => 1,
-        ]);
-        $service->razorpay_order_id = $razorpayOrder['id'];
-        $service->save();
-
-        DB::commit();
-        return response()->json([
-            'service_request_id' => $service->id,
-            'razorpay_order_id'  => $razorpayOrder['id'],
-            'amount'             => intval($request->amount * 100),
-            'contact_name'       => $service->contact_name,
-            'contact_number'     => $service->contact_number,
-            'key_id'             => env('RAZORPAY_KEY_ID'),
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json(['error' => 'Service request creation failed', 'msg' => $e->getMessage()], 500);
-    }
-}
-public function verifyServicePayment(Request $request)
-{
-    $request->validate([
-        'razorpay_order_id'   => 'required|string',
-        'razorpay_payment_id' => 'required|string',
-        'razorpay_signature'  => 'required|string',
-    ]);
-
-    $service = ServiceRequest::where('razorpay_order_id', $request->razorpay_order_id)->firstOrFail();
-    $key_secret = env('RAZORPAY_KEY_SECRET');
-    $generated_signature = hash_hmac(
-        'sha256',
-        $request->razorpay_order_id . "|" . $request->razorpay_payment_id,
-        $key_secret
-    );
-    if ($generated_signature === $request->razorpay_signature) {
-        $service->payment_status = 'paid';
-        $service->status = 'pending';
-        $service->razorpay_payment_id = $request->razorpay_payment_id;
-        $service->razorpay_signature = $request->razorpay_signature;
-        $service->payment_time = now();
-        $service->save();
-        return response()->json(['status' => 'success']);
-    } else {
-        $service->payment_status = 'failed';
-        $service->status = 'cancelled';
-        $service->save();
-        return response()->json(['status' => 'fail'], 400);
-    }
-}
-
 public function charges(Request $request){
     $shop = Merchant::where('id', $request->input('shopId'))->first();
 
@@ -657,6 +631,170 @@ public function regenerateOtp(Request $request, $orderId)
         'message' => 'OTP regenerated and sent to user.',
         'otp' => app()->isLocal() ? $otp : null // Only send in response if in local env
     ]);
+}
+
+protected function triggerServiceDeliveryPayout(ServiceRequest $service): void
+{
+    if ((float) $service->amount <= 0) {
+        return;
+    }
+
+    if ($service->delivery_payout_status === 'SUCCESS') {
+        return;
+    }
+
+    if (empty($service->delivery_partner_id)) {
+        return;
+    }
+
+    $rider = Rider::find($service->delivery_partner_id);
+
+    if (! $rider) {
+        throw new \Exception('Rider not found.');
+    }
+
+    $beneficiaryId = 'service_rider_' . $rider->id;
+
+    if (! empty($rider->upi_id)) {
+        $beneficiaryPayload = [
+            'beneficiary_id' => $beneficiaryId,
+            'beneficiary_name' => $rider->receipt_name ?: $rider->title,
+            'beneficiary_instrument_details' => [
+                'vpa' => $rider->upi_id,
+            ],
+            'beneficiary_contact_details' => [
+                'beneficiary_email' => $rider->email ?: ('rider' . $rider->id . '@example.com'),
+                'beneficiary_phone' => $rider->mobile ?: '9999999999',
+            ],
+        ];
+
+        $transferMode = 'upi';
+    } else {
+        if (empty($rider->acc_number) || empty($rider->ifsc)) {
+            throw new \Exception('Rider payout details are incomplete.');
+        }
+
+        $beneficiaryPayload = [
+            'beneficiary_id' => $beneficiaryId,
+            'beneficiary_name' => $rider->receipt_name ?: $rider->title,
+            'beneficiary_instrument_details' => [
+                'bank_account_number' => $rider->acc_number,
+                'bank_ifsc' => $rider->ifsc,
+            ],
+            'beneficiary_contact_details' => [
+                'beneficiary_email' => $rider->email ?: ('rider' . $rider->id . '@example.com'),
+                'beneficiary_phone' => $rider->mobile ?: '9999999999',
+            ],
+        ];
+
+        $transferMode = 'imps';
+    }
+
+    $beneficiary = $this->cashfreeService->createOrGetBeneficiary($beneficiaryPayload);
+
+    $transferId = 'SD_' . $service->id . '_' . now()->format('His');
+
+    $transfer = $this->cashfreeService->createTransfer([
+        'transfer_id' => $transferId,
+        'transfer_amount' => round((float) $service->amount, 2),
+        'transfer_mode' => $transferMode,
+        'beneficiary_details' => [
+            'beneficiary_id' => $beneficiary['beneficiary_id'] ?? $beneficiaryId,
+        ],
+        'remarks' => 'Service payout for request ' . $service->id,
+    ]);
+
+    $service->delivery_payout_beneficiary_id = $beneficiary['beneficiary_id'] ?? $beneficiaryId;
+    $service->delivery_payout_id = $transfer['transfer_id'] ?? $transferId;
+    $service->delivery_payout_status = $transfer['transfer_status'] ?? 'PROCESSING';
+
+    if (($transfer['transfer_status'] ?? null) === 'SUCCESS') {
+        $service->delivery_paid_at = now();
+    }
+
+    $service->save();
+}
+
+protected function triggerOrderDeliveryPayout(Order $order): void
+{
+    if ((float) $order->delivery_amount <= 0) {
+        return;
+    }
+
+    if ($order->delivery_payout_status === 'SUCCESS') {
+        return;
+    }
+
+    if (empty($order->delivery_partner_id)) {
+        return;
+    }
+
+    $rider = Rider::find($order->delivery_partner_id);
+
+    if (! $rider) {
+        throw new \Exception('Rider not found.');
+    }
+
+    $beneficiaryId = 'rider_' . $rider->id;
+
+    if (! empty($rider->upi_id)) {
+        $beneficiaryPayload = [
+            'beneficiary_id' => $beneficiaryId,
+            'beneficiary_name' => $rider->receipt_name ?: $rider->title,
+            'beneficiary_instrument_details' => [
+                'vpa' => $rider->upi_id,
+            ],
+            'beneficiary_contact_details' => [
+                'beneficiary_email' => $rider->email ?: ('rider' . $rider->id . '@example.com'),
+                'beneficiary_phone' => $rider->mobile ?: '9999999999',
+            ],
+        ];
+
+        $transferMode = 'upi';
+    } else {
+        if (empty($rider->acc_number) || empty($rider->ifsc)) {
+            throw new \Exception('Rider payout details are incomplete.');
+        }
+
+        $beneficiaryPayload = [
+            'beneficiary_id' => $beneficiaryId,
+            'beneficiary_name' => $rider->receipt_name ?: $rider->title,
+            'beneficiary_instrument_details' => [
+                'bank_account_number' => $rider->acc_number,
+                'bank_ifsc' => $rider->ifsc,
+            ],
+            'beneficiary_contact_details' => [
+                'beneficiary_email' => $rider->email ?: ('rider' . $rider->id . '@example.com'),
+                'beneficiary_phone' => $rider->mobile ?: '9999999999',
+            ],
+        ];
+
+        $transferMode = 'imps';
+    }
+
+    $beneficiary = $this->cashfreeService->createOrGetBeneficiary($beneficiaryPayload);
+
+    $transferId = 'D_' . $order->id . '_' . now()->format('His');
+
+    $transfer = $this->cashfreeService->createTransfer([
+        'transfer_id' => $transferId,
+        'transfer_amount' => round((float) $order->delivery_amount, 2),
+        'transfer_mode' => $transferMode,
+        'beneficiary_details' => [
+            'beneficiary_id' => $beneficiary['beneficiary_id'] ?? $beneficiaryId,
+        ],
+        'remarks' => 'Rider payout for order ' . $order->merchant_transaction_id,
+    ]);
+
+    $order->delivery_payout_beneficiary_id = $beneficiary['beneficiary_id'] ?? $beneficiaryId;
+    $order->delivery_payout_id = $transfer['transfer_id'] ?? $transferId;
+    $order->delivery_payout_status = $transfer['transfer_status'] ?? 'PROCESSING';
+
+    if (($transfer['transfer_status'] ?? null) === 'SUCCESS') {
+        $order->delivery_paid_at = now();
+    }
+
+    $order->save();
 }
 
 }

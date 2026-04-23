@@ -18,18 +18,30 @@ class ServiceRequest extends Model
         'note',
         'status',
         'payment_status',
+        'payment_gateway',
+        'payment_gateway_id',
         'razorpay_order_id',
         'razorpay_payment_id',
         'razorpay_signature',
+        'cashfree_order_id',
+        'cashfree_payment_session_id',
+        'cashfree_order_status',
         'amount',
         'payment_time',
+        'paid_at',
         'delivery_partner_id',
-        'completion_otp'
+        'completion_otp',
+        'delivery_payout_beneficiary_id',
+        'delivery_payout_id',
+        'delivery_payout_status',
+        'delivery_paid_at',
     ];
 
     protected $casts = [
         'payment_time' => 'datetime',
+        'paid_at' => 'datetime',
         'amount' => 'decimal:2',
+        'delivery_paid_at' => 'datetime',
     ];
 
     public function user()
