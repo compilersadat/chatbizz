@@ -51,7 +51,6 @@ class VehicleResource extends Resource
                     ->columnSpanFull(),
                     FileUpload::make('img')->label('Vehicle Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('vehicles')
                     ->required()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
@@ -59,9 +58,7 @@ class VehicleResource extends Resource
                         $path = 'vehicles/' . $filename;
 
                         $stream = $file->readStream();
-                        $options = ['visibility' => 'public'];
-
-                        Storage::disk('s3')->put($path, $stream, $options);
+                        Storage::disk('s3')->put($path, $stream);
                         if (is_resource($stream)) {
                             fclose($stream);
                         }

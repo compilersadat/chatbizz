@@ -42,7 +42,6 @@ class MerchantCatagoryResource extends Resource
                     ->required(),
                     FileUpload::make('cat_img')->label('Category Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('merchant-categories')
                     ->required()
                     ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {

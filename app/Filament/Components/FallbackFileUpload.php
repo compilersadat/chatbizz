@@ -32,13 +32,7 @@ class FallbackFileUpload extends FileUpload
             $path = $directory !== '' ? $directory . '/' . $filename : $filename;
 
             $stream = $file->readStream();
-            $options = [];
-
-            if ($this->getVisibility()) {
-                $options['visibility'] = $this->getVisibility();
-            }
-
-            $disk->put($path, $stream, $options);
+            $disk->put($path, $stream);
 
             if (is_resource($stream)) {
                 fclose($stream);

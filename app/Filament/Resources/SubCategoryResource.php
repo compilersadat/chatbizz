@@ -47,7 +47,6 @@ class SubCategoryResource extends Resource
                     ->required(),
                     FileUpload::make('image')->label('SubCategory Image')
                     ->disk('s3')
-                    ->visibility('public')
                     ->directory('subcategories')
                     ->required()
                      ->saveUploadedFileUsing(function (TemporaryUploadedFile $file): string {
