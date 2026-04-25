@@ -50,6 +50,7 @@ public function merchantProduct()
 public function merchants()
 {
     return $this->belongsToMany(Merchant::class, 'merchant_products')
+        ->wherePivotNull('deleted_at')
         ->withPivot(['stock', 'price', 'discount', 'description']);
 }
 

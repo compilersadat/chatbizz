@@ -54,6 +54,7 @@ class Merchant extends Authenticatable
 public function products()
 {
     return $this->belongsToMany(Product::class, 'merchant_products')
+        ->wherePivotNull('deleted_at')
         ->withPivot('stock', 'price', 'discount', 'description');
 }
 
