@@ -11,6 +11,7 @@
         "filament/filament": "^3.2",
         "flowframe/laravel-trend": "^0.3.0",
         "google/apiclient": "^2.18",
+        "google/cloud-firestore": "^1.52",
         "guzzlehttp/guzzle": "^7.2",
         "kreait/firebase-php": "^7.18",
         "laravel/framework": "^10.0",
