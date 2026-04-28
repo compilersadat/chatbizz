@@ -120,7 +120,7 @@ class PaymentController extends Controller
             $order->save();
 
             $merchantToken = DeviceToken::where('user_id', $shop->id)
-                ->where('user_type', 'merchant')
+                ->forUserType('merchant')
                 ->value('device_token');
 
             if ($merchantToken) {

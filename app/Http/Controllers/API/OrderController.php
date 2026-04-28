@@ -456,7 +456,7 @@ public function changeServiceStatus(Request $request)
 
             // Notify merchant about new order
             $merchantToken = DeviceToken::where('user_id', $order->shop_id)
-                ->where('user_type', 'merchant')
+                ->forUserType('merchant')
                 ->value('device_token');
 
             if ($merchantToken) {

@@ -3,7 +3,8 @@
 namespace App\Helpers;
 
 use Google\Client as GoogleClient;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class FcmHelper
 {
@@ -18,8 +19,26 @@ class FcmHelper
      */
     public static function send($deviceToken, $title, $body, $data = [])
     {
-        $projectId = "chatbizz-b53e3";
-        $credentialsFilePath = env('FIREBASE_CREDENTIALS'); // Path to your service account JSON
+        $credentialsFilePath = self::resolveCredentialsPath();
+
+        if (! $credentialsFilePath) {
+            Log::error('FCM credentials file is not configured.');
+            return false;
+        }
+
+        if (! is_file($credentialsFilePath)) {
+            Log::error('FCM credentials file was not found.', [
+                'path' => $credentialsFilePath,
+            ]);
+            return false;
+        }
+
+        $projectId = self::resolveProjectId($credentialsFilePath);
+
+        if (! $projectId) {
+            Log::error('FCM project ID could not be resolved.');
+            return false;
+        }
 
         // Get Google OAuth2 access token using service account
         $client = new GoogleClient();
@@ -28,14 +47,9 @@ class FcmHelper
         $client->refreshTokenWithAssertion();
         $token = $client->getAccessToken();
         if (!$token || !isset($token['access_token'])) {
+            Log::error('FCM access token could not be generated.');
             return false;
         }
-        $access_token = $token['access_token'];
-
-        $headers = [
-            "Authorization: Bearer $access_token",
-            'Content-Type: application/json'
-        ];
 
         $message = [
             "token" => $deviceToken,
@@ -43,35 +57,109 @@ class FcmHelper
                 "title" => $title,
                 "body" => $body,
             ],
+            "android" => [
+                "priority" => "high",
+                "notification" => [
+                    "sound" => "default",
+                ],
+            ],
+            "apns" => [
+                "headers" => [
+                    "apns-priority" => "10",
+                ],
+                "payload" => [
+                    "aps" => [
+                        "sound" => "default",
+                        "content-available" => 1,
+                    ],
+                ],
+            ],
         ];
 
         // Only include data if provided and non-empty
         if (!empty($data)) {
-            $message["data"] = array_map('strval', $data); // Data values must be string
+            $message["data"] = self::normalizeDataPayload($data);
         }
 
-        $payload = json_encode(["message" => $message]);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send");
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-        $response = curl_exec($ch);
-        $err = curl_error($ch);
-        curl_close($ch);
-
-        if ($err) {
-            \Log::error("FCM cURL error: $err");
+        try {
+            $response = Http::withToken($token['access_token'])
+                ->timeout(15)
+                ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", [
+                    'message' => $message,
+                ]);
+        } catch (\Throwable $e) {
+            Log::error('FCM request failed.', [
+                'error' => $e->getMessage(),
+            ]);
             return false;
         }
-        $decoded = json_decode($response, true);
+
+        $decoded = $response->json();
+
+        if (! $response->successful()) {
+            Log::error('FCM send failed.', [
+                'status' => $response->status(),
+                'response' => $decoded ?: $response->body(),
+                'project_id' => $projectId,
+            ]);
+            return false;
+        }
 
         // Optionally log the response for debugging
-        \Log::info('FCM HTTP v1 Response:', $decoded);
+        Log::info('FCM HTTP v1 Response:', [
+            'project_id' => $projectId,
+            'response' => $decoded,
+        ]);
 
         return $decoded;
+    }
+
+    protected static function resolveCredentialsPath(): ?string
+    {
+        $path = config('services.firebase.credentials');
+
+        if (! $path) {
+            return null;
+        }
+
+        if (str_starts_with($path, DIRECTORY_SEPARATOR)) {
+            return $path;
+        }
+
+        return base_path($path);
+    }
+
+    protected static function resolveProjectId(string $credentialsFilePath): ?string
+    {
+        $configuredProjectId = config('services.firebase.project_id');
+
+        if ($configuredProjectId) {
+            return $configuredProjectId;
+        }
+
+        $credentials = json_decode(file_get_contents($credentialsFilePath), true);
+
+        return $credentials['project_id'] ?? null;
+    }
+
+    protected static function normalizeDataPayload(array $data): array
+    {
+        return array_map(static function ($value): string {
+            if (is_null($value)) {
+                return '';
+            }
+
+            if (is_bool($value)) {
+                return $value ? 'true' : 'false';
+            }
+
+            if (is_scalar($value)) {
+                return (string) $value;
+            }
+
+            $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            return $encoded === false ? '' : $encoded;
+        }, $data);
     }
 }
