@@ -94,23 +94,6 @@ class MerchantResource extends Resource
         TextInput::make('lat')->label('Latitude')->reactive()->required(),
         TextInput::make('lang')->label('Longitude')->reactive()->required(),
 
-        // Razorpay IDs (from step 1)
-        TextInput::make('razorpay_contact_id')
-            ->label('Razorpay Contact ID')
-            ->placeholder('cont_xxxxxxxxxxxxx')
-            ->required(fn (string $operation): bool => $operation === 'create')
-            ->rule('regex:/^cont_[A-Za-z0-9]+$/')
-            ->unique(ignoreRecord: true)
-            ->maxLength(191),
-
-        TextInput::make('razorpay_fund_account_id')
-            ->label('Razorpay Fund Account ID')
-            ->placeholder('fa_xxxxxxxxxxxxx')
-            ->required(fn (string $operation): bool => $operation === 'create')
-            ->rule('regex:/^fa_[A-Za-z0-9]+$/')
-            ->unique(ignoreRecord: true)
-            ->maxLength(191),
-
         Section::make('Payment Information')
             ->description('Store merchant payout details in the linked merchant account.')
             ->relationship('merchantAccount')
@@ -137,22 +120,6 @@ class MerchantResource extends Resource
                 TextInput::make('bank_branch')
                     ->label('Bank Branch')
                     ->maxLength(255),
-
-                TextInput::make('razorpay_contact_id')
-                    ->label('Merchant Account Razorpay Contact ID')
-                    ->placeholder('cont_xxxxxxxxxxxxx')
-                    ->rule('regex:/^cont_[A-Za-z0-9]+$/')
-                    ->maxLength(191),
-
-                TextInput::make('razorpay_fund_account_id')
-                    ->label('Merchant Account Razorpay Fund Account ID')
-                    ->placeholder('fa_xxxxxxxxxxxxx')
-                    ->rule('regex:/^fa_[A-Za-z0-9]+$/')
-                    ->maxLength(191),
-
-                TextInput::make('razorpay_virtual_account_id')
-                    ->label('Merchant Account Razorpay Virtual Account ID')
-                    ->maxLength(191),
 
                 Forms\Components\Select::make('verification_status')
                     ->options([
