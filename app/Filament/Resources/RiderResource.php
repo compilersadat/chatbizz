@@ -192,29 +192,6 @@ class RiderResource extends Resource
                         ->required(),
                     Forms\Components\TextInput::make('upi_id'),
                     ])->columns(2),
-                Forms\Components\Section::make('Razorpay (Optional)')
-                ->description('Store mapped Razorpay Contact & Fund Account IDs for payouts')
-                ->aside()
-                ->icon('heroicon-m-credit-card')
-                ->schema([
-                    Forms\Components\TextInput::make('razorpay_contact_id')
-                        ->label('RZP Contact ID')
-                        ->placeholder('cont_XXXXXXXXXXXX')
-                        ->maxLength(100)
-                        ->rules(['nullable', 'regex:/^cont_[A-Za-z0-9]+$/'])
-                        ->helperText('Example: cont_abc123...'),
-
-                    Forms\Components\TextInput::make('razorpay_fund_account_id')
-                        ->label('RZP Fund Account ID')
-                        ->placeholder('fa_XXXXXXXXXXXX')
-                        ->maxLength(100)
-                        ->rules(['nullable', 'regex:/^fa_[A-Za-z0-9]+$/'])
-                        ->helperText('Example: fa_abc123...'),
-                ])->columns(2),
-
-
-                
-
             ]);
     }
 
