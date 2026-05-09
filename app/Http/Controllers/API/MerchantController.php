@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class MerchantController extends Controller
 {
@@ -194,12 +195,40 @@ class MerchantController extends Controller
         $search = $request->query('search');
         $perPage = $request->query('per_page', 10); // Default to 10 if not provided
 
-        // Only return active merchants
+        $merchantsQuery = $this->merchantListingQuery($search);
+
+        // Paginate the results
+        $merchants = $this->transformMerchantPagination($merchantsQuery->paginate($perPage));
+
+        // Return response
+        return response()->json([
+            'success' => true,
+            'data' => $merchants
+        ]);
+    }
+
+    public function getMerchantsByMerchantCategory(Request $request, int $categoryId)
+    {
+        $search = $request->query('search');
+        $perPage = $request->query('per_page', 10);
+
+        $merchantsQuery = $this->merchantListingQuery($search)
+            ->where('catagory_id', $categoryId);
+
+        $merchants = $this->transformMerchantPagination($merchantsQuery->paginate($perPage));
+
+        return response()->json([
+            'success' => true,
+            'data' => $merchants,
+        ]);
+    }
+
+    protected function merchantListingQuery(?string $search = null)
+    {
         $merchantsQuery = Merchant::query()
             ->with('merchantcategory:id,cat_name')
             ->where('status', 1);
 
-        // If a search term is provided, filter merchants based on name or other fields
         if ($search) {
             $merchantsQuery->where(function ($query) use ($search) {
                 $query->where('name', 'like', "%{$search}%")
@@ -208,19 +237,18 @@ class MerchantController extends Controller
             });
         }
 
-        // Paginate the results
-        $merchants = $merchantsQuery->paginate($perPage);
+        return $merchantsQuery;
+    }
+
+    protected function transformMerchantPagination(LengthAwarePaginator $merchants): LengthAwarePaginator
+    {
         $merchants->getCollection()->transform(function ($merchant) {
             $merchant->cat_name = $merchant->merchantcategory?->cat_name;
 
             return $merchant;
         });
 
-        // Return response
-        return response()->json([
-            'success' => true,
-            'data' => $merchants
-        ]);
+        return $merchants;
     }
 
     public function addProductsToMerchant(Request $request)

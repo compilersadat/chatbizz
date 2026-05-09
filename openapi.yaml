@@ -720,6 +720,22 @@ paths:
         '200':
           $ref: '#/components/responses/MerchantsResponse'
 
+  /merchant-category/{categoryId}/merchants:
+    get:
+      tags: [Merchant]
+      security: []
+      summary: Get active merchants by merchant category
+      parameters:
+        - $ref: '#/components/parameters/CategoryId'
+        - name: search
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/MerchantsResponse'
+
   /search-products:
     get:
       tags: [Products]
@@ -844,6 +860,12 @@ components:
         type: integer
     CartId:
       name: cartId
+      in: path
+      required: true
+      schema:
+        type: integer
+    CategoryId:
+      name: categoryId
       in: path
       required: true
       schema:
@@ -1333,6 +1355,62 @@ components:
     Merchant:
       type: object
       additionalProperties: true
+    MerchantListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        catagory_id:
+          type: integer
+          nullable: true
+        cat_name:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        mobile:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        status:
+          type: integer
+        thumbnail:
+          type: string
+          nullable: true
+        lat:
+          type: string
+          nullable: true
+        lang:
+          type: string
+          nullable: true
+        discount_price:
+          type: number
+          nullable: true
+        merchant_type:
+          type: string
+          nullable: true
+        visible_on_chat:
+          type: boolean
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+        merchantcategory:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              nullable: true
+            cat_name:
+              type: string
+              nullable: true
     Driver:
       type: object
       additionalProperties: true
@@ -1643,6 +1721,15 @@ components:
     PaginatedGenericData:
       type: object
       additionalProperties: true
+    PaginatedMerchantData:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/MerchantListItem'
     OrderItemCreateInput:
       type: object
       required: [product_id, price, quantity]
@@ -2383,7 +2470,7 @@ components:
               success:
                 type: boolean
               data:
-                $ref: '#/components/schemas/PaginatedGenericData'
+                $ref: '#/components/schemas/PaginatedMerchantData'
     SearchProductsResponse:
       description: Search products response
       content:

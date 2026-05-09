@@ -128,6 +128,7 @@ Route::get('/categories-with-merchants', [MerchantCategoryController::class, 'in
 Route::get('/merchant/{merchantId}/products', [ProductController::class, 'getProductsByMerchant']);
 Route::get('/products', [ProductController::class, 'getAllProducts']);
 Route::get('/merchants', [MerchantController::class, 'getMerchants']);
+Route::get('/merchant-category/{categoryId}/merchants', [MerchantController::class, 'getMerchantsByMerchantCategory']);
 Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/getCharges',[OrderController::class, 'charges']);
 Route::get('/static-pages', [StaticPageController::class, 'index']);
