@@ -194,14 +194,16 @@ class MerchantController extends Controller
         $search = $request->query('search');
         $perPage = $request->query('per_page', 10); // Default to 10 if not provided
 
-        // Start query for merchants
-        $merchantsQuery = Merchant::query();
+        // Only return active merchants
+        $merchantsQuery = Merchant::query()->where('status', 1);
 
         // If a search term is provided, filter merchants based on name or other fields
         if ($search) {
-            $merchantsQuery->where('name', 'like', "%{$search}%")->where('status',1)
-                           ->orWhere('mobile', 'like', "%{$search}%")
-                           ->orWhere('address', 'like', "%{$search}%");
+            $merchantsQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('mobile', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%");
+            });
         }
 
         // Paginate the results
