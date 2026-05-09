@@ -195,7 +195,9 @@ class MerchantController extends Controller
         $perPage = $request->query('per_page', 10); // Default to 10 if not provided
 
         // Only return active merchants
-        $merchantsQuery = Merchant::query()->where('status', 1);
+        $merchantsQuery = Merchant::query()
+            ->with('merchantcategory:id,cat_name')
+            ->where('status', 1);
 
         // If a search term is provided, filter merchants based on name or other fields
         if ($search) {
@@ -208,6 +210,11 @@ class MerchantController extends Controller
 
         // Paginate the results
         $merchants = $merchantsQuery->paginate($perPage);
+        $merchants->getCollection()->transform(function ($merchant) {
+            $merchant->cat_name = $merchant->merchantcategory?->cat_name;
+
+            return $merchant;
+        });
 
         // Return response
         return response()->json([
