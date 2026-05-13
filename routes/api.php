@@ -13,6 +13,7 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\ChatController;
 use App\Http\Controllers\API\StaticPageController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\AdController;
 
 /*
 |--------------------------------------------------------------------------
@@ -133,3 +134,5 @@ Route::get('/search-products', [ProductController::class, 'searchProducts']);
 Route::get('/getCharges',[OrderController::class, 'charges']);
 Route::get('/static-pages', [StaticPageController::class, 'index']);
 Route::get('/static-pages/{slug}', [StaticPageController::class, 'show']);
+Route::get('/ads', [AdController::class, 'index']);
+Route::get('/adds', [AdController::class, 'index']);

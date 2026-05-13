@@ -15,4 +15,8 @@ class Banner extends Model
         'img',
         'status',
     ];
+
+    protected $casts = [
+        'status' => 'integer',
+    ];
 }
