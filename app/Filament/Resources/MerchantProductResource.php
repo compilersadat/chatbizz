@@ -66,11 +66,11 @@ class MerchantProductResource extends Resource
                     ->columnSpan(6),
 
                 Forms\Components\TextInput::make('price')
-                    ->label('Original Price')
+                    ->label('Listing Price')
                     ->numeric()->prefix('₹')->minValue(0)->required()->columnSpan(4),
 
                 Forms\Components\TextInput::make('merchant_price')
-                    ->label('Merchant Price')
+                    ->label('Original Price')
                     ->numeric()
                     ->prefix('₹')
                     ->minValue(0)
@@ -111,12 +111,12 @@ class MerchantProductResource extends Resource
                 ->searchable(),
 
             Tables\Columns\TextColumn::make('price')
-                ->label('Original')
+                ->label('Listing Price')
                 ->money('INR', true)
                 ->sortable(),
 
             Tables\Columns\TextColumn::make('merchant_price')
-                ->label('Merchant Price')
+                ->label('Original Price')
                 ->money('INR', true)
                 ->sortable(),
 
