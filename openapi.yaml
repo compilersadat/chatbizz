@@ -24,6 +24,7 @@ tags:
   - name: Notifications
   - name: Chat
   - name: Static Pages
+  - name: Ads
 
 paths:
   /user:
@@ -838,6 +839,25 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /ads:
+    get:
+      tags: [Ads]
+      security: []
+      summary: Get active mobile ads
+      responses:
+        '200':
+          $ref: '#/components/responses/ActiveAdsResponse'
+
+  /adds:
+    get:
+      tags: [Ads]
+      security: []
+      summary: Get active mobile ads
+      description: Alias for `/ads`.
+      responses:
+        '200':
+          $ref: '#/components/responses/ActiveAdsResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -1352,6 +1372,33 @@ components:
     AuthenticatedUserResponse:
       type: object
       additionalProperties: true
+    Ad:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        image:
+          type: string
+          nullable: true
+          example: mobile-ads/1f2c3d4e-5678-90ab-cdef-111213141516.jpg
+        image_url:
+          type: string
+          nullable: true
+          format: uri
+          example: https://cdn.example.com/mobile-ads/1f2c3d4e-5678-90ab-cdef-111213141516.jpg
+        status:
+          type: integer
+          enum: [1]
+          example: 1
+        created_at:
+          type: string
+          nullable: true
+          format: date-time
+        updated_at:
+          type: string
+          nullable: true
+          format: date-time
     Merchant:
       type: object
       additionalProperties: true
@@ -2295,6 +2342,20 @@ components:
                 type: boolean
               data:
                 $ref: '#/components/schemas/PaginatedGenericData'
+    ActiveAdsResponse:
+      description: Active mobile ads response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+                example: true
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Ad'
     MerchantDashboardResponse:
       description: Merchant dashboard response
       content:
