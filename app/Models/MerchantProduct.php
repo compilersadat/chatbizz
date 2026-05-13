@@ -17,14 +17,16 @@ class MerchantProduct extends Model
         'product_id',
         'stock',
         'price',
+        'merchant_price',
         'discount',     // discounted (final) price if present
         'description',
     ];
 
     protected $casts = [
-        'price'    => 'decimal:2',
+        'price' => 'decimal:2',
+        'merchant_price' => 'decimal:2',
         'discount' => 'decimal:2',
-        'stock'    => 'integer',
+        'stock' => 'integer',
     ];
 
     /**

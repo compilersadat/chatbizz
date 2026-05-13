@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use App\Models\OrderItem;
 use Razorpay\Api\Api;
 use App\Models\Merchant;
+use App\Models\MerchantAccount;
+use App\Models\MerchantProduct;
 use App\Models\Rider;
 use App\Models\ServiceRequest;
 use App\Helpers\FcmHelper;
@@ -72,25 +74,41 @@ class OrderController extends Controller
     $order->status = $newStatus;
     $order->save();
 
-    $payoutTriggered = false;
-    $payoutError = null;
+    $merchantPayoutTriggered = false;
+    $merchantPayoutError = null;
+    $deliveryPayoutTriggered = false;
+    $deliveryPayoutError = null;
 
     if (
         $newStatus === 'delivered'
         && $order->payment_status === 'paid'
-        && ! empty($order->delivery_partner_id)
     ) {
         try {
-            $this->triggerOrderDeliveryPayout($order);
-            $payoutTriggered = true;
+            $this->triggerOrderMerchantPayout($order);
+            $merchantPayoutTriggered = true;
         } catch (\Throwable $e) {
-            $payoutError = $e->getMessage();
+            $merchantPayoutError = $e->getMessage();
 
-            Log::error('Order delivery payout failed', [
+            Log::error('Order merchant payout failed', [
                 'order_id' => $order->id,
-                'delivery_partner_id' => $order->delivery_partner_id,
+                'merchant_id' => $order->shop_id,
                 'error' => $e->getMessage(),
             ]);
+        }
+
+        if (! empty($order->delivery_partner_id)) {
+            try {
+                $this->triggerOrderDeliveryPayout($order);
+                $deliveryPayoutTriggered = true;
+            } catch (\Throwable $e) {
+                $deliveryPayoutError = $e->getMessage();
+
+                Log::error('Order delivery payout failed', [
+                    'order_id' => $order->id,
+                    'delivery_partner_id' => $order->delivery_partner_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
     }
 
@@ -167,8 +185,10 @@ class OrderController extends Controller
 
     return response()->json([
         'message' => 'Order updated & notifications sent.',
-        'delivery_payout_triggered' => $payoutTriggered,
-        'delivery_payout_error' => $payoutError,
+        'merchant_payout_triggered' => $merchantPayoutTriggered,
+        'merchant_payout_error' => $merchantPayoutError,
+        'delivery_payout_triggered' => $deliveryPayoutTriggered,
+        'delivery_payout_error' => $deliveryPayoutError,
     ]);
 }
 
@@ -430,7 +450,12 @@ public function changeServiceStatus(Request $request)
                 'drop_lat' => $request->drop_lat,
                 'drop_lng' => $request->drop_lng,
                 'pick_lat' => $shop->lat,
-                'pick_lng' => $shop->lang
+                'pick_lng' => $shop->lang,
+                'merchant_amount' => 0,
+                'delivery_amount' => round((float) $request->delivery_charges, 2),
+                'admin_amount' => round((float) $request->platform_fee, 2),
+                'payment_gateway' => 'razorpay',
+                'payment_status' => 'pending',
             ]);
 
             foreach ($request->items as $item) {
@@ -442,6 +467,8 @@ public function changeServiceStatus(Request $request)
                     'quantity' => $item['quantity'],
                 ]);
             }
+
+            $order->merchant_amount = $this->calculateMerchantPriceAmount($order);
 
             // Create Razorpay order (server-side)
             $api = new Api(env('RAZORPAY_KEY_ID'), env('RAZORPAY_KEY_SECRET'));
@@ -506,6 +533,7 @@ public function changeServiceStatus(Request $request)
         );
         if ($generated_signature === $request->razorpay_signature) {
             $order->status = 'paid';
+            $order->payment_status = 'paid';
             $order->payment_gateway_id = $request->razorpay_payment_id;
             $order->save();
             $token =  DeviceToken::where('user_id', $order->user_id)
@@ -631,6 +659,94 @@ public function regenerateOtp(Request $request, $orderId)
         'message' => 'OTP regenerated and sent to user.',
         'otp' => app()->isLocal() ? $otp : null // Only send in response if in local env
     ]);
+}
+
+protected function triggerOrderMerchantPayout(Order $order): void
+{
+    $merchantAmount = $this->calculateMerchantPriceAmount($order);
+
+    if ($merchantAmount <= 0) {
+        return;
+    }
+
+    if ($order->merchant_payout_status === 'SUCCESS') {
+        return;
+    }
+
+    if ((float) $order->merchant_amount !== $merchantAmount) {
+        $order->merchant_amount = $merchantAmount;
+        $order->save();
+    }
+
+    $merchant = Merchant::findOrFail($order->shop_id);
+    $merchantAccount = MerchantAccount::where('user_id', $merchant->id)->first();
+
+    if (! $merchantAccount) {
+        throw new \Exception('Merchant account details not found.');
+    }
+
+    if (empty($merchantAccount->bank_account_number) || empty($merchantAccount->ifsc_code)) {
+        throw new \Exception('Merchant bank details are incomplete.');
+    }
+
+    $beneficiaryId = 'merchant_' . $merchant->id;
+
+    $beneficiary = $this->cashfreeService->createOrGetBeneficiary([
+        'beneficiary_id' => $beneficiaryId,
+        'beneficiary_name' => $merchantAccount->account_holder_name ?: $merchant->name,
+        'beneficiary_instrument_details' => [
+            'bank_account_number' => $merchantAccount->bank_account_number,
+            'bank_ifsc' => $merchantAccount->ifsc_code,
+        ],
+        'beneficiary_contact_details' => [
+            'beneficiary_email' => 'merchant' . $merchant->id . '@example.com',
+            'beneficiary_phone' => ! empty($merchant->mobile)
+                ? preg_replace('/^\+91/', '', $merchant->mobile)
+                : '9999999999',
+        ],
+    ]);
+
+    $transferId = 'M_' . $order->id . '_' . now()->format('His');
+
+    $transfer = $this->cashfreeService->createTransfer([
+        'transfer_id' => $transferId,
+        'transfer_amount' => $merchantAmount,
+        'transfer_mode' => 'imps',
+        'beneficiary_details' => [
+            'beneficiary_id' => $beneficiary['beneficiary_id'] ?? $beneficiaryId,
+        ],
+        'remarks' => 'Merchant payout for order ' . $order->merchant_transaction_id,
+    ]);
+
+    $order->merchant_payout_beneficiary_id = $beneficiary['beneficiary_id'] ?? $beneficiaryId;
+    $order->merchant_payout_id = $transfer['transfer_id'] ?? $transferId;
+    $order->merchant_payout_status = $transfer['transfer_status'] ?? 'PROCESSING';
+
+    if (($transfer['transfer_status'] ?? null) === 'SUCCESS') {
+        $order->merchant_paid_at = now();
+    }
+
+    $order->save();
+}
+
+protected function calculateMerchantPriceAmount(Order $order): float
+{
+    $amount = 0.0;
+
+    foreach ($order->orderItems()->get(['product_id', 'quantity']) as $item) {
+        $merchantProduct = MerchantProduct::query()
+            ->where('merchant_id', $order->shop_id)
+            ->where('product_id', $item->product_id)
+            ->first();
+
+        if (! $merchantProduct || $merchantProduct->merchant_price === null) {
+            throw new \Exception('Merchant price is missing for product ' . $item->product_id . '.');
+        }
+
+        $amount += (float) $merchantProduct->merchant_price * (int) $item->quantity;
+    }
+
+    return round($amount, 2);
 }
 
 protected function triggerServiceDeliveryPayout(ServiceRequest $service): void

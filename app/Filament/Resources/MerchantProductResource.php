@@ -7,10 +7,12 @@ use App\Models\Merchant;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Validation\Rule;
 
 class MerchantProductResource extends Resource
 {
@@ -27,7 +29,12 @@ class MerchantProductResource extends Resource
             Forms\Components\Section::make()->columns(12)->schema([
                 Forms\Components\Select::make('merchant_id')
                     ->label('Merchant')
+                    ->live()
                     ->searchable()
+                    ->rule(
+                        Rule::exists('merchants', 'id')
+                            ->where(fn ($query) => $query->where('merchant_type', 'associative'))
+                    )
                     ->getSearchResultsUsing(function (string $search) {
                         return \App\Models\Merchant::associative()
                             ->when($search !== '', fn ($q) =>
@@ -61,6 +68,15 @@ class MerchantProductResource extends Resource
                 Forms\Components\TextInput::make('price')
                     ->label('Original Price')
                     ->numeric()->prefix('₹')->minValue(0)->required()->columnSpan(4),
+
+                Forms\Components\TextInput::make('merchant_price')
+                    ->label('Merchant Price')
+                    ->numeric()
+                    ->prefix('₹')
+                    ->minValue(0)
+                    ->required(fn (Get $get): bool => static::isAssociativeMerchant($get('merchant_id')))
+                    ->visible(fn (Get $get): bool => static::isAssociativeMerchant($get('merchant_id')))
+                    ->columnSpan(4),
 
                 Forms\Components\TextInput::make('discount')
                     ->label('Discounted Price')
@@ -99,6 +115,11 @@ class MerchantProductResource extends Resource
                 ->money('INR', true)
                 ->sortable(),
 
+            Tables\Columns\TextColumn::make('merchant_price')
+                ->label('Merchant Price')
+                ->money('INR', true)
+                ->sortable(),
+
             Tables\Columns\TextColumn::make('discount')
                 ->label('Discounted')
                 ->money('INR', true)
@@ -126,6 +147,18 @@ class MerchantProductResource extends Resource
             Tables\Actions\DeleteBulkAction::make(),
         ]);
 }
+
+    protected static function isAssociativeMerchant($merchantId): bool
+    {
+        if (blank($merchantId)) {
+            return false;
+        }
+
+        return Merchant::query()
+            ->whereKey($merchantId)
+            ->where('merchant_type', 'associative')
+            ->exists();
+    }
 
     
 

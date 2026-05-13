@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DeviceToken;
 use App\Models\Merchant;
 use App\Models\MerchantAccount;
+use App\Models\MerchantProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Rider;
@@ -56,7 +57,10 @@ class PaymentController extends Controller
 
             $adminAmount = round((float) $request->platform_fee, 2);
             $deliveryAmount = round((float) $request->delivery_charges, 2);
-            $merchantAmount = round((float) $request->total_amount - $adminAmount - $deliveryAmount, 2);
+            $merchantAmount = $this->calculateMerchantPriceAmountFromItems(
+                (int) $request->shop_id,
+                $request->items
+            );
 
             if ($merchantAmount < 0) {
                 throw new \Exception('Invalid split calculation. Merchant amount cannot be negative.');
@@ -221,12 +225,6 @@ class PaymentController extends Controller
             $order->payment_gateway_id = $successfulPayment['cf_payment_id'] ?? null;
             $order->paid_at = now();
             $order->save();
-
-            $this->triggerMerchantPayout($order);
-
-            if (! empty($order->delivery_partner_id)) {
-                $this->triggerDeliveryPayout($order);
-            }
 
             $deviceToken = DeviceToken::where('user_id', $order->user_id)
                 ->where('user_type', 'customer')
@@ -488,11 +486,6 @@ class PaymentController extends Controller
                 $order->paid_at = now();
                 $order->save();
 
-                $this->triggerMerchantPayout($order);
-
-                if (! empty($order->delivery_partner_id)) {
-                    $this->triggerDeliveryPayout($order);
-                }
             } elseif (in_array($paymentStatus, ['FAILED', 'CANCELLED', 'USER_DROPPED'])) {
                 $order->payment_status = 'failed';
                 $order->status = 'failed';
@@ -524,24 +517,35 @@ class PaymentController extends Controller
         $order->status = 'delivered';
         $order->save();
 
-        if ($order->payment_status === 'paid' && ! empty($order->delivery_partner_id)) {
-            $this->triggerDeliveryPayout($order);
+        if ($order->payment_status === 'paid') {
+            $this->triggerMerchantPayout($order);
+
+            if (! empty($order->delivery_partner_id)) {
+                $this->triggerDeliveryPayout($order);
+            }
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Order delivered and rider payout triggered',
+            'message' => 'Order delivered and payouts triggered',
         ]);
     }
 
     protected function triggerMerchantPayout(Order $order): void
     {
-        if ((float) $order->merchant_amount <= 0) {
+        $merchantAmount = $this->calculateMerchantPriceAmount($order);
+
+        if ($merchantAmount <= 0) {
             return;
         }
 
         if ($order->merchant_payout_status === 'SUCCESS') {
             return;
+        }
+
+        if ((float) $order->merchant_amount !== $merchantAmount) {
+            $order->merchant_amount = $merchantAmount;
+            $order->save();
         }
 
         $merchant = Merchant::findOrFail($order->shop_id);
@@ -576,7 +580,7 @@ class PaymentController extends Controller
 
         $transfer = $this->cashfreeService->createTransfer([
             'transfer_id' => $transferId,
-            'transfer_amount' => round((float) $order->merchant_amount, 2),
+            'transfer_amount' => $merchantAmount,
             'transfer_mode' => 'imps',
             'beneficiary_details' => [
                 'beneficiary_id' => $beneficiary['beneficiary_id'] ?? $beneficiaryId,
@@ -593,6 +597,36 @@ class PaymentController extends Controller
         }
 
         $order->save();
+    }
+
+    protected function calculateMerchantPriceAmount(Order $order): float
+    {
+        $items = $order->orderItems()->get(['product_id', 'quantity']);
+
+        return $this->calculateMerchantPriceAmountFromItems((int) $order->shop_id, $items);
+    }
+
+    protected function calculateMerchantPriceAmountFromItems(int $merchantId, iterable $items): float
+    {
+        $amount = 0.0;
+
+        foreach ($items as $item) {
+            $productId = is_array($item) ? $item['product_id'] : $item->product_id;
+            $quantity = is_array($item) ? $item['quantity'] : $item->quantity;
+
+            $merchantProduct = MerchantProduct::query()
+                ->where('merchant_id', $merchantId)
+                ->where('product_id', $productId)
+                ->first();
+
+            if (! $merchantProduct || $merchantProduct->merchant_price === null) {
+                throw new \Exception('Merchant price is missing for product ' . $productId . '.');
+            }
+
+            $amount += (float) $merchantProduct->merchant_price * (int) $quantity;
+        }
+
+        return round($amount, 2);
     }
 
     protected function triggerDeliveryPayout(Order $order): void
