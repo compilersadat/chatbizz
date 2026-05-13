@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\DeviceToken;
-use App\Models\User;
 use App\Helpers\FcmHelper; // <-- Add this
 
 
@@ -36,12 +35,14 @@ class NotificationController extends Controller
     public function notifyUser(Request $request)
     {
         $request->validate([
+            'user_id' => 'required|integer',
+            'user_type' => 'required|in:customer,driver,merchant,merchants',
             'title'   => 'required|string',
             'body'    => 'required|string',
+            'data'    => 'nullable|array',
         ]);
-        $user = $request->user();
 
-        $token = DeviceToken::where('user_id', $user->id)
+        $token = DeviceToken::where('user_id', $request->user_id)
             ->forUserType($request->input('user_type'))
             ->first();
 
