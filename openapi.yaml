@@ -706,6 +706,34 @@ paths:
         '200':
           $ref: '#/components/responses/ProductsResponse'
 
+  /catalog:
+    get:
+      tags: [Products]
+      security: []
+      summary: Get product catalog excluding products already added by merchant
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: cat_id
+          in: query
+          schema:
+            type: integer
+        - name: subcat_id
+          in: query
+          schema:
+            type: integer
+        - name: merchant_id
+          in: query
+          description: Merchant whose already-added products should be excluded.
+          schema:
+            type: integer
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        '200':
+          $ref: '#/components/responses/CatalogResponse'
+
   /merchants:
     get:
       tags: [Merchant]
@@ -1507,6 +1535,56 @@ components:
     Product:
       type: object
       additionalProperties: true
+    CatalogProduct:
+      type: object
+      properties:
+        id:
+          type: integer
+        cat_id:
+          type: integer
+          nullable: true
+        subcat_id:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        price:
+          type: number
+          nullable: true
+        discount_price:
+          type: number
+          nullable: true
+        status:
+          type: integer
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        thumbnail:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          nullable: true
+        productcategory:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
+        subcategory:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+            title:
+              type: string
     MerchantProductSearchItem:
       type: object
       properties:
@@ -1768,6 +1846,15 @@ components:
     PaginatedGenericData:
       type: object
       additionalProperties: true
+    PaginatedCatalogData:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedResponse'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/CatalogProduct'
     PaginatedMerchantData:
       allOf:
         - $ref: '#/components/schemas/PaginatedResponse'
@@ -2521,6 +2608,17 @@ components:
                 type: boolean
               data:
                 $ref: '#/components/schemas/PaginatedGenericData'
+    CatalogResponse:
+      description: Product catalog response excluding products already added by merchant
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              success:
+                type: boolean
+              data:
+                $ref: '#/components/schemas/PaginatedCatalogData'
     MerchantsResponse:
       description: Merchant list response
       content:

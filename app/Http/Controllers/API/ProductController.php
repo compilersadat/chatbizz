@@ -7,6 +7,7 @@ use App\Models\Merchant;
 use Illuminate\Http\Request;
 use App\Models\ProductCategory;
 use App\Models\MerchantProduct;
+use App\Models\Product;
 
 class ProductController extends Controller
 {
@@ -132,7 +133,7 @@ class ProductController extends Controller
         $search = trim((string) $request->input('search', ''));
         $catId = $request->input('cat_id');
         $subcatId = $request->input('subcat_id');
-        $merchantId = $request->input('merchant_id');
+        $merchantId = $request->input('merchant_id', $request->input('merchant _id'));
 
         $query = MerchantProduct::query()
             ->select([
@@ -186,6 +187,43 @@ class ProductController extends Controller
                 ];
             })
         );
+
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+        ]);
+    }
+
+    public function catalog(Request $request)
+    {
+        $perPage = (int) $request->input('per_page', 10);
+        $perPage = $perPage > 0 ? min($perPage, 100) : 10;
+
+        $search = trim((string) $request->input('search', ''));
+        $catId = $request->input('cat_id');
+        $subcatId = $request->input('subcat_id');
+        $merchantId = $request->input('merchant_id', $request->input('merchant _id'));
+
+        $products = Product::query()
+            ->with(['productcategory:id,title', 'subcategory:id,title'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('title', 'like', '%' . $search . '%');
+            })
+            ->when($catId, function ($query) use ($catId) {
+                $query->where('cat_id', $catId);
+            })
+            ->when($subcatId, function ($query) use ($subcatId) {
+                $query->where('subcat_id', $subcatId);
+            })
+            ->when($merchantId, function ($query) use ($merchantId) {
+                $query->whereDoesntHave('merchantProducts', function ($merchantProductQuery) use ($merchantId) {
+                    $merchantProductQuery
+                        ->where('merchant_id', $merchantId)
+                        ->whereNull('deleted_at');
+                });
+            })
+            ->orderBy('title')
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
