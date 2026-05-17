@@ -601,18 +601,26 @@ class PaymentController extends Controller
 
     protected function calculateMerchantPriceAmount(Order $order): float
     {
-        $items = $order->orderItems()->get(['product_id', 'quantity']);
+        $items = $order->orderItems()->get(['product_id', 'quantity', 'price']);
 
         return $this->calculateMerchantPriceAmountFromItems((int) $order->shop_id, $items);
     }
 
     protected function calculateMerchantPriceAmountFromItems(int $merchantId, iterable $items): float
     {
+        $merchant = Merchant::findOrFail($merchantId);
+        $useMerchantPrice = $merchant->merchant_type === 'associative';
         $amount = 0.0;
 
         foreach ($items as $item) {
             $productId = is_array($item) ? $item['product_id'] : $item->product_id;
             $quantity = is_array($item) ? $item['quantity'] : $item->quantity;
+
+            if (! $useMerchantPrice) {
+                $price = is_array($item) ? $item['price'] : $item->price;
+                $amount += (float) $price * (int) $quantity;
+                continue;
+            }
 
             $merchantProduct = MerchantProduct::query()
                 ->where('merchant_id', $merchantId)

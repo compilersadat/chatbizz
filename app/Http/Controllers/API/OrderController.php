@@ -731,9 +731,16 @@ protected function triggerOrderMerchantPayout(Order $order): void
 
 protected function calculateMerchantPriceAmount(Order $order): float
 {
+    $merchant = Merchant::findOrFail($order->shop_id);
+    $useMerchantPrice = $merchant->merchant_type === 'associative';
     $amount = 0.0;
 
-    foreach ($order->orderItems()->get(['product_id', 'quantity']) as $item) {
+    foreach ($order->orderItems()->get(['product_id', 'quantity', 'price']) as $item) {
+        if (! $useMerchantPrice) {
+            $amount += (float) $item->price * (int) $item->quantity;
+            continue;
+        }
+
         $merchantProduct = MerchantProduct::query()
             ->where('merchant_id', $order->shop_id)
             ->where('product_id', $item->product_id)
